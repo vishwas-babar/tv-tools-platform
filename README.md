@@ -1,5 +1,37 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Database Setup
+
+To run a PostgreSQL database locally using Docker with persistent volumes, execute the following command:
+
+```bash
+docker run --name tv-tools-db \
+  -e POSTGRES_USER=user \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=tv_tools_platform \
+  -p 23535:5432 \
+  -v tv-tools-postgres-data:/var/lib/postgresql/data \
+  -d postgres:17
+```
+
+This matches the configuration in your `.env`:
+```env
+DATABASE_URL="postgresql://user:password@localhost:23535/tv_tools_platform"
+```
+
+Once the database container is running, initialize the database by creating and running migrations:
+
+```bash
+# 1. Create and apply the initial migration (generates the Prisma Client automatically)
+pnpm db:migrate --name init
+
+# 2. Seed the database with initial tools and plans
+pnpm db:seed
+```
+
+> [!NOTE]
+> For rapid prototyping where you don't need migration history, you can alternatively use `pnpm db:generate` followed by `pnpm db:push`.
+
 ## Getting Started
 
 First, run the development server:
