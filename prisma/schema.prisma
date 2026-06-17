@@ -45,12 +45,12 @@ model Tool {
 
 model Plan {
   id            String         @id @default(cuid())
-  toolId        String
+  name          String
   durationDays  Int
   price         Float
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  tool          Tool           @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  tools         Tool[]
   subscriptions Subscription[]
 }
 

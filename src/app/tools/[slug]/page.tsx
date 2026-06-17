@@ -8,6 +8,7 @@ import { PlanCard } from "@/components/plan-card";
 
 interface Plan {
   id: string;
+  name: string;
   durationDays: number;
   price: number;
 }
@@ -146,6 +147,7 @@ export default function ToolDetailPage() {
             {tool.plans.map((plan) => (
               <PlanCard
                 key={plan.id}
+                name={plan.name}
                 durationDays={plan.durationDays}
                 price={plan.price}
               />

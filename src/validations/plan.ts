@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const planSchema = z.object({
-  toolId: z.string().min(1, "Tool ID is required"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
   durationDays: z
     .number()
     .int("Duration must be a whole number")

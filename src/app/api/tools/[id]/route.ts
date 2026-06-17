@@ -61,8 +61,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       );
     }
 
-    const { name, slug, description, imageUrl, youtubeUrl, isActive } =
-      parsed.data;
+    const { name, slug, description, imageUrl, youtubeUrl, isActive, planIds } = body as any;
 
     const duplicate = await prisma.tool.findFirst({
       where: { slug, NOT: { id } },
@@ -83,7 +82,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         imageUrl: imageUrl || null,
         youtubeUrl: youtubeUrl || null,
         isActive,
+        plans: planIds ? {
+          set: planIds.map((id: string) => ({ id }))
+        } : undefined,
       },
+      include: {
+        plans: true
+      }
     });
 
     return NextResponse.json({ success: true, data: tool });

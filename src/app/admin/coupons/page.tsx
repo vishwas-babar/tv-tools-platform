@@ -40,7 +40,7 @@ export default async function AdminCouponsPage() {
                   <td className="px-4 py-3 text-gray-600">
                     {coupon.discountType === "PERCENTAGE"
                       ? `${coupon.discountValue}%`
-                      : `$${coupon.discountValue.toFixed(2)}`}
+                      : `₹${coupon.discountValue.toFixed(2)}`}
                   </td>
                   <td className="px-4 py-3">
                     {coupon.active ? (

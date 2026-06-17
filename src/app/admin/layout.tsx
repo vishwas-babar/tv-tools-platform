@@ -4,6 +4,7 @@ import { ProtectedRouteWrapper } from "@/components/protected-route-wrapper";
 const adminItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/tools", label: "Tools" },
+  { href: "/admin/plans", label: "Plans" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/coupons", label: "Coupons" },

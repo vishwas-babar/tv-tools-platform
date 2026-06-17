@@ -78,26 +78,38 @@ async function main() {
 
   // ── Plans ───────────────────────────────────────────────────────────────
   const planData = [
-    { toolId: tool1.id, durationDays: 30, price: 29.99 },
-    { toolId: tool1.id, durationDays: 90, price: 74.99 },
-    { toolId: tool1.id, durationDays: 365, price: 249.99 },
-    { toolId: tool2.id, durationDays: 30, price: 19.99 },
-    { toolId: tool2.id, durationDays: 90, price: 49.99 },
-    { toolId: tool2.id, durationDays: 365, price: 179.99 },
-    { toolId: tool3.id, durationDays: 30, price: 14.99 },
-    { toolId: tool3.id, durationDays: 90, price: 39.99 },
-    { toolId: tool3.id, durationDays: 365, price: 129.99 },
+    { name: "Monthly Basic", durationDays: 30, price: 14.99 },
+    { name: "Quarterly Basic", durationDays: 90, price: 39.99 },
+    { name: "Yearly Basic", durationDays: 365, price: 129.99 },
+    { name: "Monthly Standard", durationDays: 30, price: 19.99 },
+    { name: "Quarterly Standard", durationDays: 90, price: 49.99 },
+    { name: "Yearly Standard", durationDays: 365, price: 179.99 },
+    { name: "Monthly Premium", durationDays: 30, price: 29.99 },
+    { name: "Quarterly Premium", durationDays: 90, price: 74.99 },
+    { name: "Yearly Premium", durationDays: 365, price: 249.99 },
   ];
 
-  // Delete existing plans first to avoid duplicate-key issues on re-seed
-  await prisma.plan.deleteMany({
-    where: { toolId: { in: [tool1.id, tool2.id, tool3.id] } },
-  });
+  await prisma.plan.deleteMany(); // Reset plans
 
+  const createdPlans = [];
   for (const plan of planData) {
-    await prisma.plan.create({ data: plan });
+    createdPlans.push(await prisma.plan.create({ data: plan }));
   }
-  console.log(`✅ Plans: ${planData.length} plans created`);
+  console.log(`✅ Plans: ${planData.length} global plans created`);
+
+  // Link tools to some plans
+  await prisma.tool.update({
+    where: { id: tool1.id },
+    data: { plans: { connect: [{ id: createdPlans[6].id }, { id: createdPlans[7].id }, { id: createdPlans[8].id }] } },
+  });
+  await prisma.tool.update({
+    where: { id: tool2.id },
+    data: { plans: { connect: [{ id: createdPlans[3].id }, { id: createdPlans[4].id }, { id: createdPlans[5].id }] } },
+  });
+  await prisma.tool.update({
+    where: { id: tool3.id },
+    data: { plans: { connect: [{ id: createdPlans[0].id }, { id: createdPlans[1].id }, { id: createdPlans[2].id }] } },
+  });
 
   console.log("🎉 Seeding complete!");
 }

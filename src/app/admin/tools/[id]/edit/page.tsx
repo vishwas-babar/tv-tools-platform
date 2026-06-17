@@ -5,6 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/axios";
 import { ImageUpload } from "@/components/image-upload";
 
+interface Plan {
+  id: string;
+  name: string;
+  durationDays: number;
+  price: number;
+}
+
 interface Tool {
   id: string;
   name: string;
@@ -13,6 +20,7 @@ interface Tool {
   imageUrl: string | null;
   youtubeUrl: string | null;
   isActive: boolean;
+  plans: Plan[];
 }
 
 export default function EditToolPage() {
@@ -26,16 +34,28 @@ export default function EditToolPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Plan state
+  const [globalPlans, setGlobalPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
   useEffect(() => {
     if (!id) return;
-    api
-      .get<{ success: boolean; data: Tool }>(`/tools/${id}`)
-      .then(({ data }) => {
-        setTool(data.data);
-        setImageUrl(data.data.imageUrl ?? "");
+    
+    // Fetch tool and global plans
+    Promise.all([
+      api.get<{ success: boolean; data: Tool }>(`/tools/${id}`),
+      api.get<{ success: boolean; data: Plan[] }>("/plans")
+    ])
+      .then(([toolRes, plansRes]) => {
+        setTool(toolRes.data.data);
+        setImageUrl(toolRes.data.data.imageUrl ?? "");
+        setGlobalPlans(plansRes.data.data);
       })
       .catch((err: Error) => setError(err.message))
-      .finally(() => setLoadingTool(false));
+      .finally(() => {
+        setLoadingTool(false);
+        setLoadingPlans(false);
+      });
   }, [id]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -51,19 +71,29 @@ export default function EditToolPage() {
       imageUrl,
       youtubeUrl: (form.elements.namedItem("youtubeUrl") as HTMLInputElement).value || "",
       isActive: (form.elements.namedItem("isActive") as HTMLInputElement).checked,
+      planIds: tool?.plans.map(p => p.id) || [],
     };
 
     api
       .patch<{ success: boolean }>(`/tools/${id}`, data)
       .then(() => {
         setSuccess(true);
-        setTimeout(() => router.push("/admin/tools"), 1000);
       })
       .catch((err: Error) => setError(err.message))
       .finally(() => setPending(false));
   }
 
-  if (loadingTool) {
+  function togglePlan(plan: Plan) {
+    if (!tool) return;
+    const isSelected = tool.plans.some(p => p.id === plan.id);
+    if (isSelected) {
+      setTool({ ...tool, plans: tool.plans.filter(p => p.id !== plan.id) });
+    } else {
+      setTool({ ...tool, plans: [...tool.plans, plan] });
+    }
+  }
+
+  if (loadingTool || loadingPlans) {
     return (
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Edit Tool</h1>
@@ -190,6 +220,44 @@ export default function EditToolPage() {
           {pending ? "Updating..." : "Update Tool"}
         </button>
       </form>
+
+      {/* --- Manage Plans Section --- */}
+      <div className="mt-10 max-w-lg rounded-lg border border-gray-200 bg-white p-6">
+        <h2 className="text-xl font-bold text-gray-900">Assigned Plans</h2>
+        <p className="mb-4 mt-1 text-sm text-gray-600">
+          Select which global plans are available for this tool. You can manage global plans from the Plans page.
+        </p>
+
+        <div className="space-y-3">
+          {globalPlans.map((plan) => {
+            const isSelected = tool.plans.some(p => p.id === plan.id);
+            return (
+              <label
+                key={plan.id}
+                className={`flex cursor-pointer items-center justify-between rounded border p-4 hover:bg-gray-50 ${
+                  isSelected ? "border-blue-500 bg-blue-50/50" : "border-gray-200 bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => togglePlan(plan)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                  />
+                  <div>
+                    <div className="font-medium text-gray-900">{plan.name}</div>
+                    <div className="text-sm text-gray-600">{plan.durationDays} Days for ₹{plan.price.toFixed(2)}</div>
+                  </div>
+                </div>
+              </label>
+            );
+          })}
+          {globalPlans.length === 0 && (
+            <p className="text-sm text-gray-500">No global plans found. Go to Admin &gt; Plans to create some.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

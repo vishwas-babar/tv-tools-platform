@@ -57,7 +57,7 @@ export default async function PurchasesPage() {
                       {sub.plan.durationDays} days
                     </td>
                     <td className="px-4 py-3 text-gray-600">
-                      ${sub.plan.price.toFixed(2)}
+                      ₹{sub.plan.price.toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {new Date(sub.startDate).toLocaleDateString()}
