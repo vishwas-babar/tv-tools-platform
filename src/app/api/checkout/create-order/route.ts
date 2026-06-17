@@ -119,13 +119,13 @@ export async function POST(request: Request) {
     const existingSubscriptions = await prisma.subscription.findMany({
       where: {
         userId,
-        endDate: { gte: new Date() },
-        OR: items.map((item) => ({
-          toolId: item.toolId,
-          planId: item.planId,
-        })),
+        toolId: { in: items.map((item) => item.toolId) },
+        OR: [
+          { status: "PENDING_ACCESS" },
+          { status: "ACTIVE", endDate: { gt: new Date() } },
+        ],
       },
-      select: { toolId: true, planId: true },
+      select: { toolId: true },
     });
 
     if (existingSubscriptions.length > 0) {

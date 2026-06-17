@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { SubscriptionStatusBadgeFromRecord } from "@/components/subscription-status-badge";
+import { formatSubscriptionDateTime } from "@/lib/subscriptions";
 
 export default async function PurchasesPage() {
   const session = await auth();
@@ -10,7 +12,7 @@ export default async function PurchasesPage() {
     where: { userId: session.user.id },
     include: {
       tool: { select: { name: true, slug: true } },
-      plan: { select: { durationDays: true, price: true } },
+      plan: { select: { name: true, durationDays: true, price: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -32,10 +34,11 @@ export default async function PurchasesPage() {
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
                 <th className="px-4 py-3 font-medium text-gray-500">Tool</th>
-                <th className="px-4 py-3 font-medium text-gray-500">
-                  Duration
-                </th>
+                <th className="px-4 py-3 font-medium text-gray-500">Plan</th>
                 <th className="px-4 py-3 font-medium text-gray-500">Price</th>
+                <th className="px-4 py-3 font-medium text-gray-500">
+                  Purchased
+                </th>
                 <th className="px-4 py-3 font-medium text-gray-500">
                   Start Date
                 </th>
@@ -46,39 +49,35 @@ export default async function PurchasesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {subscriptions.map((sub) => {
-                const isActive = new Date(sub.endDate) >= new Date();
-                return (
-                  <tr key={sub.id}>
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {sub.tool.name}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {sub.plan.durationDays} days
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      ₹{sub.plan.price.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {new Date(sub.startDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {new Date(sub.endDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isActive ? (
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                          Expired
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {subscriptions.map((sub) => (
+                <tr key={sub.id}>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {sub.tool.name}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {sub.plan.name} · {sub.plan.durationDays} days
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    ₹{sub.plan.price.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {new Date(sub.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {sub.startDate
+                      ? formatSubscriptionDateTime(new Date(sub.startDate))
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {sub.endDate
+                      ? formatSubscriptionDateTime(new Date(sub.endDate))
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <SubscriptionStatusBadgeFromRecord sub={sub} />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -1,67 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cashfree } from "@/lib/cashfree";
-
-/**
- * Provision subscriptions for a paid order.
- * Idempotent — will not create duplicates if called multiple times.
- */
-async function provisionSubscriptions(orderId: string) {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          plan: { select: { durationDays: true } },
-        },
-      },
-    },
-  });
-
-  if (!order || order.status !== "PAID") return;
-
-  // Check if subscriptions already exist for this order
-  const existingSubs = await prisma.subscription.findMany({
-    where: {
-      userId: order.userId,
-      OR: order.items.map((item) => ({
-        toolId: item.toolId,
-        planId: item.planId,
-        startDate: { gte: order.createdAt },
-      })),
-    },
-  });
-
-  if (existingSubs.length > 0) return; // Already provisioned
-
-  const now = new Date();
-
-  // Create subscriptions for each order item
-  await prisma.subscription.createMany({
-    data: order.items.map((item) => ({
-      userId: order.userId,
-      toolId: item.toolId,
-      planId: item.planId,
-      startDate: now,
-      endDate: new Date(
-        now.getTime() + item.plan.durationDays * 24 * 60 * 60 * 1000
-      ),
-    })),
-  });
-
-  // Create payment record
-  await prisma.payment.upsert({
-    where: { orderId: order.id },
-    update: {},
-    create: {
-      userId: order.userId,
-      amount: order.totalAmount,
-      status: "SUCCESS",
-      paymentProvider: "cashfree",
-      orderId: order.id,
-    },
-  });
-}
+import { provisionSubscriptions } from "@/lib/provision-subscriptions";
 
 // POST /api/checkout/webhook — Cashfree webhook handler (public, no auth)
 export async function POST(request: Request) {
@@ -108,8 +48,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true }); // Return 200 anyway
       }
 
-      // 5. Idempotent — skip if already processed
+      // 5. Idempotent — ensure subscriptions exist for paid orders
       if (order.status === "PAID") {
+        await provisionSubscriptions(order.id);
         return NextResponse.json({ success: true });
       }
 

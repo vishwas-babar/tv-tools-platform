@@ -2,67 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cashfree } from "@/lib/cashfree";
-
-/**
- * Provision subscriptions for a paid order.
- * Idempotent — will not create duplicates if called multiple times.
- */
-async function provisionSubscriptions(orderId: string) {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: {
-        include: {
-          plan: { select: { durationDays: true } },
-        },
-      },
-    },
-  });
-
-  if (!order || order.status !== "PAID") return;
-
-  // Check if subscriptions already exist for this order
-  const existingSubs = await prisma.subscription.findMany({
-    where: {
-      userId: order.userId,
-      OR: order.items.map((item) => ({
-        toolId: item.toolId,
-        planId: item.planId,
-        startDate: { gte: order.createdAt },
-      })),
-    },
-  });
-
-  if (existingSubs.length > 0) return; // Already provisioned
-
-  const now = new Date();
-
-  // Create subscriptions for each order item
-  await prisma.subscription.createMany({
-    data: order.items.map((item) => ({
-      userId: order.userId,
-      toolId: item.toolId,
-      planId: item.planId,
-      startDate: now,
-      endDate: new Date(
-        now.getTime() + item.plan.durationDays * 24 * 60 * 60 * 1000
-      ),
-    })),
-  });
-
-  // Create payment record
-  await prisma.payment.upsert({
-    where: { orderId: order.id },
-    update: {},
-    create: {
-      userId: order.userId,
-      amount: order.totalAmount,
-      status: "SUCCESS",
-      paymentProvider: "cashfree",
-      orderId: order.id,
-    },
-  });
-}
+import { provisionSubscriptions } from "@/lib/provision-subscriptions";
 
 // GET /api/checkout/verify?order_id=xxx
 export async function GET(request: Request) {

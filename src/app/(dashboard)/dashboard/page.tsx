@@ -7,21 +7,29 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const [subscriptionCount, activeSubscriptionCount] = await Promise.all([
-    prisma.subscription.count({ where: { userId: session.user.id } }),
-    prisma.subscription.count({
-      where: {
-        userId: session.user.id,
-        endDate: { gte: new Date() },
-      },
-    }),
-  ]);
+  const [subscriptionCount, activeSubscriptionCount, pendingAccessCount] =
+    await Promise.all([
+      prisma.subscription.count({ where: { userId: session.user.id } }),
+      prisma.subscription.count({
+        where: {
+          userId: session.user.id,
+          status: "ACTIVE",
+          endDate: { gt: new Date() },
+        },
+      }),
+      prisma.subscription.count({
+        where: {
+          userId: session.user.id,
+          status: "PENDING_ACCESS",
+        },
+      }),
+    ]);
 
   const stats = [
     { label: "Total Subscriptions", value: subscriptionCount },
     { label: "Active Subscriptions", value: activeSubscriptionCount },
+    { label: "Pending Activation", value: pendingAccessCount },
     { label: "Account Type", value: session.user.role },
-    { label: "Member Since", value: "Recently" },
   ];
 
   return (
