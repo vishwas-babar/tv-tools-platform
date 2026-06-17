@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { LogoutButton } from "@/components/logout-button";
+import { NavbarCartButton } from "@/components/navbar-cart-button";
 
 export async function Navbar() {
   const session = await auth();
@@ -38,6 +39,7 @@ export async function Navbar() {
                   Admin
                 </Link>
               )}
+              <NavbarCartButton />
               <LogoutButton />
             </>
           ) : (

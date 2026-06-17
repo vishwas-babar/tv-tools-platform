@@ -16,17 +16,26 @@ enum DiscountType {
   FIXED
 }
 
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
 model User {
   id            String         @id @default(cuid())
   name          String
   email         String         @unique
   password      String
+  phone         String
   tradingViewId String?
   role          Role           @default(USER)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   subscriptions Subscription[]
   payments      Payment[]
+  orders        Order[]
 }
 
 model Tool {
@@ -41,6 +50,7 @@ model Tool {
   updatedAt     DateTime       @updatedAt
   plans         Plan[]
   subscriptions Subscription[]
+  orderItems    OrderItem[]
 }
 
 model Plan {
@@ -52,6 +62,7 @@ model Plan {
   updatedAt     DateTime       @updatedAt
   tools         Tool[]
   subscriptions Subscription[]
+  orderItems    OrderItem[]
 }
 
 model Subscription {
@@ -78,6 +89,31 @@ model Coupon {
   updatedAt     DateTime     @updatedAt
 }
 
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  totalAmount      Float
+  status           OrderStatus @default(PENDING)
+  cashfreeOrderId  String      @unique
+  paymentSessionId String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items            OrderItem[]
+  payment          Payment?
+}
+
+model OrderItem {
+  id      String @id @default(cuid())
+  orderId String
+  toolId  String
+  planId  String
+  price   Float
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tool    Tool   @relation(fields: [toolId], references: [id])
+  plan    Plan   @relation(fields: [planId], references: [id])
+}
+
 model Payment {
   id                String   @id @default(cuid())
   userId            String
@@ -85,7 +121,9 @@ model Payment {
   status            String
   paymentProvider   String?
   providerPaymentId String?
+  orderId           String?  @unique
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order             Order?   @relation(fields: [orderId], references: [id])
 }

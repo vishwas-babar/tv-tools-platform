@@ -14,6 +14,11 @@ export const registerSchema = z.object({
     .string()
     .min(1, "TradingView ID is required")
     .max(100, "TradingView ID must be less than 100 characters"),
+  phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .max(15, "Phone number must be less than 15 digits")
+    .regex(/^\d+$/, "Phone number must contain only digits"),
 });
 
 export const loginSchema = z.object({

@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Authenticated routes: require login
-  const protectedPaths = ["/dashboard", "/profile", "/purchases"];
+  const protectedPaths = ["/dashboard", "/profile", "/purchases", "/checkout"];
   const isProtected = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(path + "/")
   );

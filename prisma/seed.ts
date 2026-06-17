@@ -21,6 +21,7 @@ async function main() {
       email: "admin@example.com",
       password: hashedPassword,
       tradingViewId: "admin_tv",
+      phone: "9999999999",
       role: "ADMIN",
     },
   });

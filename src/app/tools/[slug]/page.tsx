@@ -147,9 +147,12 @@ export default function ToolDetailPage() {
             {tool.plans.map((plan) => (
               <PlanCard
                 key={plan.id}
+                planId={plan.id}
                 name={plan.name}
                 durationDays={plan.durationDays}
                 price={plan.price}
+                toolId={tool.id}
+                toolName={tool.name}
               />
             ))}
           </div>

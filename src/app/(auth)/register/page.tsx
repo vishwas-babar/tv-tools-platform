@@ -86,6 +86,25 @@ export default function RegisterPage() {
           />
         </div>
 
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Phone Number
+          </label>
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            minLength={10}
+            maxLength={15}
+            placeholder="e.g. 9876543210"
+            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+          />
+        </div>
+
         <button
           type="submit"
           disabled={pending}

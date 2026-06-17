@@ -17,6 +17,7 @@ export async function registerUser(
     email: formData.get("email") as string,
     password: formData.get("password") as string,
     tradingViewId: formData.get("tradingViewId") as string,
+    phone: formData.get("phone") as string,
   };
 
   const parsed = registerSchema.safeParse(rawData);
@@ -26,7 +27,7 @@ export async function registerUser(
     return { success: false, error: firstError ?? "Validation failed" };
   }
 
-  const { name, email, password, tradingViewId } = parsed.data;
+  const { name, email, password, tradingViewId, phone } = parsed.data;
 
   // Check for duplicate email
   const existingUser = await prisma.user.findUnique({
@@ -47,6 +48,7 @@ export async function registerUser(
       email,
       password: hashedPassword,
       tradingViewId,
+      phone,
       role: "USER",
     },
   });
