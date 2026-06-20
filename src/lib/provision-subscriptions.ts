@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendPurchaseEmails } from "@/lib/purchase-emails";
 
 /**
  * Create pending subscriptions for a paid order.
@@ -44,5 +45,9 @@ export async function provisionSubscriptions(orderId: string) {
       paymentProvider: "cashfree",
       orderId: order.id,
     },
+  });
+
+  sendPurchaseEmails(order.id).catch((error) => {
+    console.error(`Failed to send purchase emails for order ${order.id}:`, error);
   });
 }
