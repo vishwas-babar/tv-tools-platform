@@ -15,13 +15,23 @@ interface SidebarProps {
   items: SidebarItem[];
   title: string;
   exactRoots?: string[];
+  className?: string;
+  onNavigate?: () => void;
 }
 
-export function Sidebar({ items, title, exactRoots = ["/dashboard", "/admin"] }: SidebarProps) {
+export function Sidebar({
+  items,
+  title,
+  exactRoots = ["/dashboard", "/admin"],
+  className = "",
+  onNavigate,
+}: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-surface/50">
+    <aside
+      className={`w-64 shrink-0 flex-col border-r border-white/10 bg-surface/50 ${className}`}
+    >
       <div className="border-b border-border px-4 py-5">
         <p className="text-xs font-semibold uppercase tracking-wider text-foreground-muted">
           {title}
@@ -36,6 +46,7 @@ export function Sidebar({ items, title, exactRoots = ["/dashboard", "/admin"] }:
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                 active
                   ? "bg-primary/15 text-primary-light shadow-sm shadow-primary/5"

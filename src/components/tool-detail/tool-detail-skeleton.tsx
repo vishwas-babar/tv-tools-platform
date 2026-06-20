@@ -1,6 +1,6 @@
 export function ToolDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl animate-pulse px-4 py-8">
+    <div className="mx-auto max-w-7xl animate-pulse">
       <div className="mb-8 h-4 w-32 rounded bg-surface-elevated" />
 
       <div className="grid gap-10 lg:grid-cols-3">

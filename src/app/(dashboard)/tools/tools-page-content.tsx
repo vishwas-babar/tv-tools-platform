@@ -102,7 +102,7 @@ export function ToolsPageContent() {
     <>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">All Tools</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">All Tools</h1>
           <p className="mt-2 text-foreground-secondary">
             Browse our collection of premium TradingView indicators and tools.
           </p>
@@ -115,7 +115,7 @@ export function ToolsPageContent() {
       </div>
 
       {loading && (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: PAGE_SIZE }).map((_, i) => (
             <ToolCardSkeleton key={i} />
           ))}
@@ -136,7 +136,7 @@ export function ToolsPageContent() {
 
       {!loading && !error && tools.length > 0 && (
         <>
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {tools.map((tool) => (
               <ToolCard
                 key={tool.id}

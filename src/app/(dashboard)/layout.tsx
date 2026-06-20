@@ -1,20 +1,32 @@
-import { Sidebar } from "@/components/sidebar";
+import { auth } from "@/lib/auth";
+import { AppShell } from "@/components/app-shell";
 
 const dashboardItems = [
   { href: "/dashboard", label: "Dashboard", icon: "dashboard" as const },
+  { href: "/tools", label: "Tools", icon: "tools" as const },
   { href: "/profile", label: "Profile", icon: "profile" as const },
   { href: "/purchases", label: "Purchases", icon: "purchases" as const },
 ];
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] px-4 py-6 sm:px-6">
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-[calc(100vh-4rem)]">
-      <Sidebar items={dashboardItems} title="User Panel" />
-      <div className="flex-1 overflow-auto p-6 lg:p-8">{children}</div>
-    </div>
+    <AppShell items={dashboardItems} title="User Panel">
+      {children}
+    </AppShell>
   );
 }

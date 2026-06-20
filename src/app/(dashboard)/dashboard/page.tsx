@@ -65,7 +65,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Dashboard</h1>
         <p className="mt-2 text-foreground-secondary">
           Welcome back,{" "}
           <span className="font-medium text-foreground">

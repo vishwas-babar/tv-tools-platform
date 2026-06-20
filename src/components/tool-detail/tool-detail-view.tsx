@@ -29,7 +29,7 @@ export function ToolDetailView({ tool }: ToolDetailViewProps) {
   const embedUrl = tool.youtubeUrl ? toEmbedUrl(tool.youtubeUrl) : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl">
       {/* Breadcrumb */}
       <nav className="mb-8 flex items-center gap-2 text-sm text-foreground-muted">
         <Link href="/tools" className="transition-colors hover:text-foreground">
@@ -44,7 +44,7 @@ export function ToolDetailView({ tool }: ToolDetailViewProps) {
         <div className="lg:col-span-2">
           {/* Header */}
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
               {tool.name}
             </h1>
             {tool.isActive ? (

@@ -39,40 +39,46 @@ export function Pagination({ page, totalPages, total, onPageChange }: Pagination
       className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-between"
       aria-label="Pagination"
     >
-      <p className="text-sm text-foreground-muted">
-        Showing page {page} of {totalPages}{" "}
-        <span className="hidden sm:inline">({total} tools)</span>
+      <p className="text-center text-sm text-foreground-muted sm:text-left">
+        Page {page} of {totalPages}
+        <span className="hidden sm:inline"> · {total} tools</span>
       </p>
 
-      <div className="flex items-center gap-1">
+      <div className="flex w-full max-w-xs items-center justify-center gap-1 sm:max-w-none sm:justify-end">
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
           className="rounded-lg border border-border px-3 py-2 text-sm text-foreground-secondary transition-colors hover:bg-surface-elevated disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Previous
+          Prev
         </button>
 
-        {pages.map((p, i) =>
-          p === "ellipsis" ? (
-            <span key={`ellipsis-${i}`} className="px-2 text-foreground-muted">
-              …
-            </span>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onPageChange(p)}
-              aria-current={p === page ? "page" : undefined}
-              className={`min-w-[2.25rem] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                p === page
-                  ? "bg-primary text-foreground"
-                  : "text-foreground-secondary hover:bg-surface-elevated"
-              }`}
-            >
-              {p}
-            </button>
-          )
-        )}
+        <span className="min-w-[2.25rem] rounded-lg bg-primary px-3 py-2 text-center text-sm font-medium text-foreground sm:hidden">
+          {page}
+        </span>
+
+        <div className="hidden items-center gap-1 sm:flex">
+          {pages.map((p, i) =>
+            p === "ellipsis" ? (
+              <span key={`ellipsis-${i}`} className="px-2 text-foreground-muted">
+                …
+              </span>
+            ) : (
+              <button
+                key={p}
+                onClick={() => onPageChange(p)}
+                aria-current={p === page ? "page" : undefined}
+                className={`min-w-[2.25rem] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  p === page
+                    ? "bg-primary text-foreground"
+                    : "text-foreground-secondary hover:bg-surface-elevated"
+                }`}
+              >
+                {p}
+              </button>
+            )
+          )}
+        </div>
 
         <button
           onClick={() => onPageChange(page + 1)}

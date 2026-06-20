@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/sidebar";
+import { AppShell } from "@/components/app-shell";
 import { ProtectedRouteWrapper } from "@/components/protected-route-wrapper";
 
 const adminItems = [
@@ -17,10 +17,9 @@ export default function AdminLayout({
 }) {
   return (
     <ProtectedRouteWrapper requireAdmin>
-      <div className="flex min-h-[calc(100vh-4rem)]">
-        <Sidebar items={adminItems} title="Admin Panel" />
-        <div className="flex-1 overflow-auto p-6 lg:p-8">{children}</div>
-      </div>
+      <AppShell items={adminItems} title="Admin Panel">
+        {children}
+      </AppShell>
     </ProtectedRouteWrapper>
   );
 }

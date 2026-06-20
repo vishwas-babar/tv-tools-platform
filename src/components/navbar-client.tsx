@@ -14,23 +14,9 @@ interface NavbarClientProps {
   userName?: string | null;
 }
 
-interface NavLink {
-  href: string;
-  label: string;
-}
-
 export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const mainLinks: NavLink[] = [{ href: "/tools", label: "Tools" }];
-
-  const authLinks: NavLink[] = isLoggedIn
-    ? [
-        { href: "/dashboard", label: "Dashboard" },
-        ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
-      ]
-    : [];
 
   const initials = (userName ?? "U")
     .split(" ")
@@ -40,7 +26,7 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
     .toUpperCase();
 
   function linkClass(href: string) {
-    const active = isNavActive(pathname, href, ["/dashboard", "/admin", "/tools"]);
+    const active = isNavActive(pathname, href, ["/admin"]);
     return `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
       active
         ? "bg-primary/15 text-primary-light"
@@ -48,11 +34,13 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
     }`;
   }
 
+  const homeHref = isLoggedIn ? "/dashboard" : "/";
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
         {/* Logo */}
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href={homeHref} className="flex shrink-0 items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent-purple text-foreground shadow-lg shadow-primary/20">
             <NavIcon name="chart" className="h-5 w-5" />
           </span>
@@ -61,19 +49,14 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 md:flex">
-          {mainLinks.map((link) => (
-            <Link key={link.href} href={link.href} className={linkClass(link.href)}>
-              {link.label}
+        {/* Desktop nav — admin only */}
+        {isLoggedIn && isAdmin && (
+          <nav className="hidden items-center gap-1 md:flex">
+            <Link href="/admin" className={linkClass("/admin")}>
+              Admin
             </Link>
-          ))}
-          {authLinks.map((link) => (
-            <Link key={link.href} href={link.href} className={linkClass(link.href)}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+          </nav>
+        )}
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
@@ -97,6 +80,9 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
             </>
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
+              <Link href="/tools" className={linkClass("/tools")}>
+                Tools
+              </Link>
               <Link href="/login" className={linkClass("/login")}>
                 Login
               </Link>
@@ -125,29 +111,22 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
       {mobileOpen && (
         <div className="border-t border-border bg-surface/95 px-4 py-4 backdrop-blur-md md:hidden">
           <nav className="flex flex-col gap-1">
-            {mainLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={linkClass(link.href)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            {authLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={linkClass(link.href)}
-              >
-                {link.label}
-              </Link>
-            ))}
-
             {isLoggedIn ? (
               <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/dashboard")}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/tools"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/tools")}
+                >
+                  Tools
+                </Link>
                 <Link
                   href="/profile"
                   onClick={() => setMobileOpen(false)}
@@ -155,12 +134,35 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
                 >
                   Profile
                 </Link>
+                <Link
+                  href="/purchases"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/purchases")}
+                >
+                  Purchases
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileOpen(false)}
+                    className={linkClass("/admin")}
+                  >
+                    Admin
+                  </Link>
+                )}
                 <div className="mt-2 border-t border-border pt-2">
                   <LogoutButton className="w-full justify-start rounded-lg px-3 py-2.5 text-sm hover:bg-surface-elevated" />
                 </div>
               </>
             ) : (
-              <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/tools"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/tools")}
+                >
+                  Tools
+                </Link>
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
