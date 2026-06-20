@@ -12,7 +12,7 @@ export function CartButton() {
     <>
       <button
         onClick={() => setDrawerOpen(true)}
-        className="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+        className="relative rounded-lg p-2 text-foreground-secondary hover:bg-surface-elevated hover:text-foreground transition-colors"
         aria-label="Open cart"
       >
         {/* Shopping cart icon */}
@@ -33,7 +33,7 @@ export function CartButton() {
 
         {/* Badge */}
         {itemCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+          <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-foreground">
             {itemCount > 9 ? "9+" : itemCount}
           </span>
         )}

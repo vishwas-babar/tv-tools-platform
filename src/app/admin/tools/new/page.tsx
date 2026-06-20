@@ -39,27 +39,27 @@ export default function NewToolPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Add New Tool</h1>
-      <p className="mt-1 text-gray-600">Create a new trading tool.</p>
+      <h1 className="text-2xl font-bold text-foreground">Add New Tool</h1>
+      <p className="mt-1 text-foreground-secondary">Create a new trading tool.</p>
 
       {error && (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
           {error}
         </div>
       )}
       {success && (
-        <div className="mt-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+        <div className="mt-4 rounded border border-success/30 bg-success/10 p-3 text-sm text-success">
           Tool created successfully! Redirecting...
         </div>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="mt-6 max-w-lg space-y-4 rounded-lg border border-gray-200 bg-white p-6"
+        className="mt-6 max-w-lg space-y-4 rounded-lg border border-border bg-surface p-6"
       >
         {/* Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-foreground-secondary">
             Name
           </label>
           <input
@@ -67,13 +67,13 @@ export default function NewToolPage() {
             name="name"
             type="text"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Slug */}
         <div>
-          <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="slug" className="block text-sm font-medium text-foreground-secondary">
             Slug
           </label>
           <input
@@ -82,13 +82,13 @@ export default function NewToolPage() {
             type="text"
             required
             placeholder="e.g. my-tool-name"
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-foreground-secondary">
             Description
           </label>
           <textarea
@@ -96,13 +96,13 @@ export default function NewToolPage() {
             name="description"
             required
             rows={4}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Cover image — S3 upload */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-foreground-secondary">
             Cover Image
           </label>
           <ImageUpload value={imageUrl} onChange={setImageUrl} />
@@ -110,14 +110,14 @@ export default function NewToolPage() {
 
         {/* YouTube URL */}
         <div>
-          <label htmlFor="youtubeUrl" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="youtubeUrl" className="block text-sm font-medium text-foreground-secondary">
             YouTube URL (optional)
           </label>
           <input
             id="youtubeUrl"
             name="youtubeUrl"
             type="url"
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
@@ -128,9 +128,9 @@ export default function NewToolPage() {
             name="isActive"
             type="checkbox"
             defaultChecked
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border-subtle"
           />
-          <label htmlFor="isActive" className="text-sm text-gray-700">
+          <label htmlFor="isActive" className="text-sm text-foreground-secondary">
             Active
           </label>
         </div>
@@ -138,7 +138,7 @@ export default function NewToolPage() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="w-full rounded bg-primary px-4 py-2 text-sm font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
         >
           {pending ? "Creating..." : "Create Tool"}
         </button>

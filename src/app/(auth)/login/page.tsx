@@ -4,18 +4,21 @@ import { useActionState } from "react";
 import { loginUser } from "@/actions/auth";
 import Link from "next/link";
 
+const inputClassName =
+  "mt-1 w-full rounded border border-border-subtle bg-surface-elevated px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none";
+
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginUser, undefined);
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-gray-900">Login</h1>
-      <p className="mt-1 text-sm text-gray-600">
+      <h1 className="text-2xl font-bold text-foreground">Login</h1>
+      <p className="mt-1 text-sm text-foreground-secondary">
         Sign in to your account to access your tools.
       </p>
 
       {state?.error && (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
           {state.error}
         </div>
       )}
@@ -24,7 +27,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Email
           </label>
@@ -33,14 +36,14 @@ export default function LoginPage() {
             name="email"
             type="email"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Password
           </label>
@@ -49,22 +52,22 @@ export default function LoginPage() {
             name="password"
             type="password"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="w-full rounded bg-primary px-4 py-2 text-sm font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
         >
           {pending ? "Signing in..." : "Sign In"}
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
+      <p className="mt-4 text-center text-sm text-foreground-secondary">
         Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-blue-600 hover:text-blue-800">
+        <Link href="/register" className="text-primary-light hover:text-primary">
           Register
         </Link>
       </p>

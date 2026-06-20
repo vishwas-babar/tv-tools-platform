@@ -65,7 +65,7 @@ export const subscriptionStatusStyles: Record<
   SubscriptionDisplayStatus,
   string
 > = {
-  PENDING_ACCESS: "bg-amber-100 text-amber-800",
-  ACTIVE: "bg-green-100 text-green-700",
-  EXPIRED: "bg-gray-100 text-gray-500",
+  PENDING_ACCESS: "bg-warning/15 text-warning",
+  ACTIVE: "bg-success/15 text-success",
+  EXPIRED: "bg-surface-elevated text-foreground-muted",
 };

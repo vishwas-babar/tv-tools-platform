@@ -45,76 +45,76 @@ export default function AdminToolsPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Manage Tools</h1>
-          <p className="mt-1 text-gray-600">Create and manage trading tools.</p>
+          <h1 className="text-2xl font-bold text-foreground">Manage Tools</h1>
+          <p className="mt-1 text-foreground-secondary">Create and manage trading tools.</p>
         </div>
         <Link
           href="/admin/tools/new"
-          className="rounded bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-700"
+          className="rounded bg-primary px-4 py-2 text-sm text-foreground hover:bg-primary-hover"
         >
           Add Tool
         </Link>
       </div>
 
       {loading && (
-        <p className="mt-8 text-center text-gray-500">Loading tools...</p>
+        <p className="mt-8 text-center text-foreground-muted">Loading tools...</p>
       )}
 
-      {error && <p className="mt-8 text-center text-red-500">{error}</p>}
+      {error && <p className="mt-8 text-center text-danger">{error}</p>}
 
       {!loading && !error && tools.length === 0 && (
-        <p className="mt-8 text-center text-gray-500">No tools created yet.</p>
+        <p className="mt-8 text-center text-foreground-muted">No tools created yet.</p>
       )}
 
       {!loading && !error && tools.length > 0 && (
-        <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-lg border border-border bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-border bg-surface-elevated">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-500">Name</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Slug</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Plans</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Subs</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Actions</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Name</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Slug</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Status</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Plans</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Subs</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {tools.map((tool) => (
                 <tr key={tool.id}>
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {tool.name}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{tool.slug}</td>
+                  <td className="px-4 py-3 text-foreground-secondary">{tool.slug}</td>
                   <td className="px-4 py-3">
                     {tool.isActive ? (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                      <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs text-success">
                         Active
                       </span>
                     ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                      <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs text-foreground-muted">
                         Inactive
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {tool._count?.plans ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {tool._count?.subscriptions ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Link
                         href={`/admin/tools/${tool.id}/edit`}
-                        className="text-sm text-blue-600 hover:text-blue-800"
+                        className="text-sm text-primary-light hover:text-primary"
                       >
                         Edit
                       </Link>
                       <button
                         onClick={() => handleDelete(tool.id)}
                         disabled={deletingId === tool.id}
-                        className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+                        className="text-sm text-danger hover:text-danger/80 disabled:opacity-50"
                       >
                         {deletingId === tool.id ? "Deleting..." : "Delete"}
                       </button>

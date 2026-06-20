@@ -80,7 +80,7 @@ export default function CheckoutPage() {
           viewBox="0 0 24 24"
           strokeWidth={1}
           stroke="currentColor"
-          className="mx-auto mb-4 h-16 w-16 text-gray-300"
+          className="mx-auto mb-4 h-16 w-16 text-foreground-muted"
         >
           <path
             strokeLinecap="round"
@@ -88,13 +88,13 @@ export default function CheckoutPage() {
             d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
           />
         </svg>
-        <h1 className="text-2xl font-bold text-gray-900">Your cart is empty</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">Your cart is empty</h1>
+        <p className="mt-2 text-foreground-secondary">
           Add some tools to your cart before checking out.
         </p>
         <button
           onClick={() => router.push("/tools")}
-          className="mt-6 rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700 transition-colors"
+          className="mt-6 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover transition-colors"
         >
           Browse Tools
         </button>
@@ -104,50 +104,50 @@ export default function CheckoutPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900">Checkout</h1>
-      <p className="mt-1 text-gray-600">
+      <h1 className="text-2xl font-bold text-foreground">Checkout</h1>
+      <p className="mt-1 text-foreground-secondary">
         Review your cart and complete your purchase.
       </p>
 
       {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="mt-4 rounded-lg border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
           {error}
         </div>
       )}
 
       {/* Order Summary */}
-      <div className="mt-8 rounded-lg border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="mt-8 rounded-lg border border-border bg-surface">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="text-lg font-semibold text-foreground">
             Order Summary ({itemCount} {itemCount === 1 ? "item" : "items"})
           </h2>
         </div>
 
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-border">
           {items.map((item) => (
             <li
               key={`${item.toolId}-${item.planId}`}
               className="flex items-center justify-between px-6 py-4"
             >
               <div>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-foreground">
                   {item.toolName}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-foreground-muted">
                   {item.planName} · {formatDuration(item.durationDays)}
                 </p>
               </div>
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-semibold text-foreground">
                 ₹{item.price.toFixed(2)}
               </p>
             </li>
           ))}
         </ul>
 
-        <div className="border-t border-gray-200 px-6 py-4">
+        <div className="border-t border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <span className="text-base font-semibold text-gray-900">Total</span>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-base font-semibold text-foreground">Total</span>
+            <span className="text-xl font-bold text-foreground">
               ₹{totalAmount.toFixed(2)}
             </span>
           </div>
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
       <button
         onClick={handlePayment}
         disabled={processing}
-        className="mt-6 w-full rounded-lg bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="mt-6 w-full rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-foreground hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {processing ? (
           <span className="flex items-center justify-center gap-2">
@@ -188,7 +188,7 @@ export default function CheckoutPage() {
         )}
       </button>
 
-      <p className="mt-4 text-center text-xs text-gray-500">
+      <p className="mt-4 text-center text-xs text-foreground-muted">
         Payments are securely processed by Cashfree. Your card details are never
         stored on our servers.
       </p>

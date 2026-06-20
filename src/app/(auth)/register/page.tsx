@@ -4,18 +4,21 @@ import { useActionState } from "react";
 import { registerUser } from "@/actions/auth";
 import Link from "next/link";
 
+const inputClassName =
+  "mt-1 w-full rounded border border-border-subtle bg-surface-elevated px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none";
+
 export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(registerUser, undefined);
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-gray-900">Register</h1>
-      <p className="mt-1 text-sm text-gray-600">
+      <h1 className="text-2xl font-bold text-foreground">Register</h1>
+      <p className="mt-1 text-sm text-foreground-secondary">
         Create an account to start using our trading tools.
       </p>
 
       {state?.error && (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
           {state.error}
         </div>
       )}
@@ -24,7 +27,7 @@ export default function RegisterPage() {
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Name
           </label>
@@ -33,14 +36,14 @@ export default function RegisterPage() {
             name="name"
             type="text"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Email
           </label>
@@ -49,14 +52,14 @@ export default function RegisterPage() {
             name="email"
             type="email"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Password
           </label>
@@ -66,14 +69,14 @@ export default function RegisterPage() {
             type="password"
             required
             minLength={8}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
             htmlFor="tradingViewId"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             TradingView ID
           </label>
@@ -82,14 +85,14 @@ export default function RegisterPage() {
             name="tradingViewId"
             type="text"
             required
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <div>
           <label
             htmlFor="phone"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-foreground-secondary"
           >
             Phone Number
           </label>
@@ -101,22 +104,22 @@ export default function RegisterPage() {
             minLength={10}
             maxLength={15}
             placeholder="e.g. 9876543210"
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className={inputClassName}
           />
         </div>
 
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="w-full rounded bg-primary px-4 py-2 text-sm font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
         >
           {pending ? "Creating account..." : "Create Account"}
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-gray-600">
+      <p className="mt-4 text-center text-sm text-foreground-secondary">
         Already have an account?{" "}
-        <Link href="/login" className="text-blue-600 hover:text-blue-800">
+        <Link href="/login" className="text-primary-light hover:text-primary">
           Login
         </Link>
       </p>

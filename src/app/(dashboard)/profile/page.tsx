@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { ProfileForm } from "@/components/profile-form";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -13,6 +14,7 @@ export default async function ProfilePage() {
       name: true,
       email: true,
       tradingViewId: true,
+      phone: true,
       role: true,
       createdAt: true,
     },
@@ -22,39 +24,25 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
-      <p className="mt-1 text-gray-600">Your account information.</p>
-
-      <div className="mt-6 max-w-lg rounded-lg border border-gray-200 bg-white p-6">
-        <dl className="space-y-4">
-          <div>
-            <dt className="text-sm font-medium text-gray-500">Name</dt>
-            <dd className="mt-1 text-gray-900">{user.name}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-gray-500">Email</dt>
-            <dd className="mt-1 text-gray-900">{user.email}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              TradingView ID
-            </dt>
-            <dd className="mt-1 text-gray-900">
-              {user.tradingViewId ?? "Not set"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-gray-500">Role</dt>
-            <dd className="mt-1 text-gray-900">{user.role}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-medium text-gray-500">Member Since</dt>
-            <dd className="mt-1 text-gray-900">
-              {user.createdAt.toLocaleDateString()}
-            </dd>
-          </div>
-        </dl>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground">Profile</h1>
+        <p className="mt-2 text-foreground-secondary">
+          Manage your account information and TradingView details.
+        </p>
       </div>
+
+      <ProfileForm
+        user={{
+          name: user.name,
+          email: user.email,
+          tradingViewId: user.tradingViewId,
+          phone: user.phone,
+          role: user.role,
+          createdAt: user.createdAt.toLocaleDateString(undefined, {
+            dateStyle: "medium",
+          }),
+        }}
+      />
     </div>
   );
 }

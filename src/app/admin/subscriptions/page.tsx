@@ -30,86 +30,86 @@ export default async function AdminSubscriptionsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">
+      <h1 className="text-2xl font-bold text-foreground">
         Manage Subscriptions
       </h1>
-      <p className="mt-1 text-gray-600">
+      <p className="mt-1 text-foreground-secondary">
         Track pending access, active plans, and expired subscriptions.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+        <span className="rounded-full bg-warning/15 px-3 py-1 text-sm font-medium text-warning">
           Pending Access: {pendingCount}
         </span>
-        <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+        <span className="rounded-full bg-success/15 px-3 py-1 text-sm font-medium text-success">
           Active: {activeCount}
         </span>
-        <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600">
+        <span className="rounded-full bg-surface-elevated px-3 py-1 text-sm font-medium text-foreground-secondary">
           Expired: {expiredCount}
         </span>
       </div>
 
       {subscriptions.length === 0 ? (
-        <p className="mt-8 text-center text-gray-500">
+        <p className="mt-8 text-center text-foreground-muted">
           No subscriptions found.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[960px] text-left text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-border bg-surface-elevated">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-500">User</th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">User</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   TradingView ID
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">Tool</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Plan</th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">Tool</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Plan</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   Purchased
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   Start Date
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   End Date
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Action</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Status</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {subscriptions.map((sub) => (
                 <tr key={sub.id}>
                   <td className="px-4 py-3">
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-foreground">
                         {sub.user.name}
                       </p>
-                      <p className="text-xs text-gray-500">{sub.user.email}</p>
+                      <p className="text-xs text-foreground-muted">{sub.user.email}</p>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {sub.user.tradingViewId || (
-                      <span className="text-amber-600">Not set</span>
+                      <span className="text-warning">Not set</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{sub.tool.name}</td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">{sub.tool.name}</td>
+                  <td className="px-4 py-3 text-foreground-secondary">
                     <p>{sub.plan.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-foreground-muted">
                       {sub.plan.durationDays} days · ₹
                       {sub.plan.price.toFixed(2)}
                     </p>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {new Date(sub.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {sub.startDate
                       ? formatSubscriptionDateTime(new Date(sub.startDate))
                       : "—"}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {sub.endDate
                       ? formatSubscriptionDateTime(new Date(sub.endDate))
                       : "—"}
@@ -121,7 +121,7 @@ export default async function AdminSubscriptionsPage() {
                     {sub.status === "PENDING_ACCESS" ? (
                       <GrantAccessButton subscriptionId={sub.id} />
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-foreground-muted">—</span>
                     )}
                   </td>
                 </tr>
@@ -131,9 +131,9 @@ export default async function AdminSubscriptionsPage() {
         </div>
       )}
 
-      <p className="mt-4 text-sm text-gray-500">
+      <p className="mt-4 text-sm text-foreground-muted">
         Grant access after adding the user to the TradingView tool.{" "}
-        <Link href="/admin/users" className="text-blue-600 hover:text-blue-800">
+        <Link href="/admin/users" className="text-primary-light hover:text-primary">
           View users
         </Link>{" "}
         to check TradingView IDs.

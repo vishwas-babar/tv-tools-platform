@@ -75,11 +75,11 @@ function CheckoutStatusContent() {
   if (!orderId) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Invalid Request</h1>
-        <p className="mt-2 text-gray-600">No order ID provided.</p>
+        <h1 className="text-2xl font-bold text-foreground">Invalid Request</h1>
+        <p className="mt-2 text-foreground-secondary">No order ID provided.</p>
         <button
           onClick={() => router.push("/tools")}
-          className="mt-6 rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700"
+          className="mt-6 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover"
         >
           Browse Tools
         </button>
@@ -90,11 +90,11 @@ function CheckoutStatusContent() {
   if (loading) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
-        <h1 className="text-2xl font-bold text-gray-900">
+        <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-border border-t-primary" />
+        <h1 className="text-2xl font-bold text-foreground">
           Verifying Payment...
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-foreground-secondary">
           Please wait while we confirm your payment.
         </p>
       </div>
@@ -104,14 +104,14 @@ function CheckoutStatusContent() {
   if (error) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-danger/10">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="h-8 w-8 text-red-600"
+            className="h-8 w-8 text-danger"
           >
             <path
               strokeLinecap="round"
@@ -120,13 +120,13 @@ function CheckoutStatusContent() {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-foreground">
           Verification Error
         </h1>
-        <p className="mt-2 text-gray-600">{error}</p>
+        <p className="mt-2 text-foreground-secondary">{error}</p>
         <button
           onClick={() => router.push("/tools")}
-          className="mt-6 rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700"
+          className="mt-6 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover"
         >
           Browse Tools
         </button>
@@ -140,14 +140,14 @@ function CheckoutStatusContent() {
   if (result.status === "PAID") {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-success/15">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2}
             stroke="currentColor"
-            className="h-8 w-8 text-green-600"
+            className="h-8 w-8 text-success"
           >
             <path
               strokeLinecap="round"
@@ -156,37 +156,37 @@ function CheckoutStatusContent() {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Payment Successful!</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">Payment Successful!</h1>
+        <p className="mt-2 text-foreground-secondary">
           Thank you for your purchase. Your payment has been confirmed.
         </p>
-        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left">
-          <p className="text-sm text-amber-900">
+        <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-left">
+          <p className="text-sm text-warning">
             TradingView tool access is granted manually. Your subscription will
             be activated within 24 hours on your TradingView account.
           </p>
         </div>
 
         {result.amount && (
-          <p className="mt-4 text-lg font-semibold text-gray-900">
+          <p className="mt-4 text-lg font-semibold text-foreground">
             Amount Paid: ₹{result.amount.toFixed(2)}
           </p>
         )}
 
         {result.items && result.items.length > 0 && (
-          <div className="mt-6 rounded-lg border border-gray-200 bg-white text-left">
-            <div className="border-b border-gray-200 px-4 py-3">
-              <h3 className="text-sm font-semibold text-gray-900">
+          <div className="mt-6 rounded-lg border border-border bg-surface text-left">
+            <div className="border-b border-border px-4 py-3">
+              <h3 className="text-sm font-semibold text-foreground">
                 Purchased Subscriptions
               </h3>
             </div>
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-border">
               {result.items.map((item, index) => (
                 <li key={index} className="px-4 py-3">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-foreground">
                     {item.tool}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-foreground-muted">
                     {item.plan} · {item.durationDays} days
                   </p>
                 </li>
@@ -198,13 +198,13 @@ function CheckoutStatusContent() {
         <div className="mt-8 flex items-center justify-center gap-4">
           <Link
             href="/purchases"
-            className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700"
+            className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover"
           >
             View Purchases
           </Link>
           <Link
             href="/tools"
-            className="rounded-lg border border-gray-300 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-border-subtle px-6 py-3 text-sm font-medium text-foreground-secondary hover:bg-surface-elevated"
           >
             Browse More Tools
           </Link>
@@ -217,19 +217,19 @@ function CheckoutStatusContent() {
   if (result.status === "PENDING") {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center">
-        <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-yellow-500" />
-        <h1 className="text-2xl font-bold text-gray-900">Payment Pending</h1>
-        <p className="mt-2 text-gray-600">
+        <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-border border-t-warning" />
+        <h1 className="text-2xl font-bold text-foreground">Payment Pending</h1>
+        <p className="mt-2 text-foreground-secondary">
           Your payment is still being processed. This page will update
           automatically.
         </p>
         {retryCount >= 5 && (
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-foreground-muted">
             Taking longer than expected. Your subscription will be activated
             once payment is confirmed. Check back on your{" "}
             <Link
               href="/purchases"
-              className="text-blue-600 hover:text-blue-800"
+              className="text-primary-light hover:text-primary"
             >
               Purchases
             </Link>{" "}
@@ -243,14 +243,14 @@ function CheckoutStatusContent() {
   // ── FAILED / EXPIRED ──
   return (
     <div className="mx-auto max-w-xl px-4 py-16 text-center">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-danger/10">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="h-8 w-8 text-red-600"
+          className="h-8 w-8 text-danger"
         >
           <path
             strokeLinecap="round"
@@ -259,20 +259,20 @@ function CheckoutStatusContent() {
           />
         </svg>
       </div>
-      <h1 className="text-2xl font-bold text-gray-900">Payment Failed</h1>
-      <p className="mt-2 text-gray-600">
+      <h1 className="text-2xl font-bold text-foreground">Payment Failed</h1>
+      <p className="mt-2 text-foreground-secondary">
         Your payment could not be processed. No charges were made.
       </p>
       <div className="mt-8 flex items-center justify-center gap-4">
         <button
           onClick={() => router.push("/checkout")}
-          className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white hover:bg-gray-700"
+          className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover"
         >
           Try Again
         </button>
         <Link
           href="/tools"
-          className="rounded-lg border border-gray-300 px-6 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-lg border border-border-subtle px-6 py-3 text-sm font-medium text-foreground-secondary hover:bg-surface-elevated"
         >
           Browse Tools
         </Link>
@@ -286,8 +286,8 @@ export default function CheckoutStatusPage() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-xl px-4 py-16 text-center">
-          <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Loading...</h1>
+          <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-border border-t-primary" />
+          <h1 className="text-2xl font-bold text-foreground">Loading...</h1>
         </div>
       }
     >

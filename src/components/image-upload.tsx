@@ -74,7 +74,7 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
     <div className="space-y-2">
       {/* Preview */}
       {value ? (
-        <div className="relative h-40 w-full overflow-hidden rounded-lg border border-gray-200">
+        <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border">
           <Image
             src={value}
             alt="Tool image preview"
@@ -85,7 +85,7 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
           <button
             type="button"
             onClick={() => onChange("")}
-            className="absolute right-2 top-2 rounded bg-black/60 px-2 py-0.5 text-xs text-white hover:bg-black/80"
+            className="absolute right-2 top-2 rounded bg-black/60 px-2 py-0.5 text-xs text-foreground hover:bg-black/80"
           >
             Remove
           </button>
@@ -96,7 +96,7 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
           tabIndex={0}
           onClick={() => inputRef.current?.click()}
           onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-          className="flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-500"
+          className="flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-subtle text-foreground-muted hover:border-border-subtle hover:text-foreground-secondary"
         >
           <svg className="mb-2 h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -126,7 +126,7 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="w-full rounded border border-border-subtle px-3 py-2 text-sm text-foreground-secondary hover:bg-surface-elevated disabled:opacity-50"
         >
           {uploading ? `Uploading… ${progress}%` : "Choose Image"}
         </button>
@@ -134,16 +134,16 @@ export function ImageUpload({ value, onChange }: ImageUploadProps) {
 
       {/* Progress bar */}
       {uploading && (
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-hover">
           <div
-            className="h-full bg-blue-500 transition-all duration-200"
+            className="h-full bg-primary-light transition-all duration-200"
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
 
       {/* Error */}
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

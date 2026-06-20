@@ -1,0 +1,31 @@
+/**
+ * TrendMaster dark theme — single source of truth for the site color palette.
+ * Tailwind generates utilities from these tokens (e.g. bg-surface, text-foreground).
+ */
+@theme {
+  /* Surfaces */
+  --color-background: #020617;
+  --color-surface: #0f172a;
+  --color-surface-elevated: #1e293b;
+  --color-surface-hover: #334155;
+
+  /* Text */
+  --color-foreground: #ffffff;
+  --color-foreground-secondary: #cbd5e1;
+  --color-foreground-muted: #64748b;
+
+  /* Borders */
+  --color-border: #1e293b;
+  --color-border-subtle: #334155;
+
+  /* Brand primary */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #3b82f6;
+
+  /* Trading & status accents */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-accent-purple: #8b5cf6;
+}

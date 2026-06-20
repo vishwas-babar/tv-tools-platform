@@ -96,8 +96,8 @@ export default function EditToolPage() {
   if (loadingTool || loadingPlans) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Tool</h1>
-        <p className="mt-4 text-gray-500">Loading tool data...</p>
+        <h1 className="text-2xl font-bold text-foreground">Edit Tool</h1>
+        <p className="mt-4 text-foreground-muted">Loading tool data...</p>
       </div>
     );
   }
@@ -105,35 +105,35 @@ export default function EditToolPage() {
   if (!tool) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Tool</h1>
-        <p className="mt-4 text-red-500">{error ?? "Tool not found"}</p>
+        <h1 className="text-2xl font-bold text-foreground">Edit Tool</h1>
+        <p className="mt-4 text-danger">{error ?? "Tool not found"}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Edit Tool</h1>
-      <p className="mt-1 text-gray-600">Update tool information.</p>
+      <h1 className="text-2xl font-bold text-foreground">Edit Tool</h1>
+      <p className="mt-1 text-foreground-secondary">Update tool information.</p>
 
       {error && (
-        <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mt-4 rounded border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
           {error}
         </div>
       )}
       {success && (
-        <div className="mt-4 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+        <div className="mt-4 rounded border border-success/30 bg-success/10 p-3 text-sm text-success">
           Tool updated successfully! Redirecting...
         </div>
       )}
 
       <form
         onSubmit={handleSubmit}
-        className="mt-6 max-w-lg space-y-4 rounded-lg border border-gray-200 bg-white p-6"
+        className="mt-6 max-w-lg space-y-4 rounded-lg border border-border bg-surface p-6"
       >
         {/* Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="block text-sm font-medium text-foreground-secondary">
             Name
           </label>
           <input
@@ -142,13 +142,13 @@ export default function EditToolPage() {
             type="text"
             required
             defaultValue={tool.name}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Slug */}
         <div>
-          <label htmlFor="slug" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="slug" className="block text-sm font-medium text-foreground-secondary">
             Slug
           </label>
           <input
@@ -157,13 +157,13 @@ export default function EditToolPage() {
             type="text"
             required
             defaultValue={tool.slug}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-foreground-secondary">
             Description
           </label>
           <textarea
@@ -172,13 +172,13 @@ export default function EditToolPage() {
             required
             rows={4}
             defaultValue={tool.description}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
         {/* Cover image — S3 upload */}
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-foreground-secondary">
             Cover Image
           </label>
           <ImageUpload value={imageUrl} onChange={setImageUrl} />
@@ -186,7 +186,7 @@ export default function EditToolPage() {
 
         {/* YouTube URL */}
         <div>
-          <label htmlFor="youtubeUrl" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="youtubeUrl" className="block text-sm font-medium text-foreground-secondary">
             YouTube URL (optional)
           </label>
           <input
@@ -194,7 +194,7 @@ export default function EditToolPage() {
             name="youtubeUrl"
             type="url"
             defaultValue={tool.youtubeUrl ?? ""}
-            className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+            className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
         </div>
 
@@ -205,9 +205,9 @@ export default function EditToolPage() {
             name="isActive"
             type="checkbox"
             defaultChecked={tool.isActive}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border-subtle"
           />
-          <label htmlFor="isActive" className="text-sm text-gray-700">
+          <label htmlFor="isActive" className="text-sm text-foreground-secondary">
             Active
           </label>
         </div>
@@ -215,16 +215,16 @@ export default function EditToolPage() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+          className="w-full rounded bg-primary px-4 py-2 text-sm font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
         >
           {pending ? "Updating..." : "Update Tool"}
         </button>
       </form>
 
       {/* --- Manage Plans Section --- */}
-      <div className="mt-10 max-w-lg rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-xl font-bold text-gray-900">Assigned Plans</h2>
-        <p className="mb-4 mt-1 text-sm text-gray-600">
+      <div className="mt-10 max-w-lg rounded-lg border border-border bg-surface p-6">
+        <h2 className="text-xl font-bold text-foreground">Assigned Plans</h2>
+        <p className="mb-4 mt-1 text-sm text-foreground-secondary">
           Select which global plans are available for this tool. You can manage global plans from the Plans page.
         </p>
 
@@ -234,8 +234,8 @@ export default function EditToolPage() {
             return (
               <label
                 key={plan.id}
-                className={`flex cursor-pointer items-center justify-between rounded border p-4 hover:bg-gray-50 ${
-                  isSelected ? "border-blue-500 bg-blue-50/50" : "border-gray-200 bg-white"
+                className={`flex cursor-pointer items-center justify-between rounded border p-4 hover:bg-surface-elevated ${
+                  isSelected ? "border-primary bg-primary/10" : "border-border bg-surface"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -243,18 +243,18 @@ export default function EditToolPage() {
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => togglePlan(plan)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                    className="h-4 w-4 rounded border-border-subtle text-primary-light"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">{plan.name}</div>
-                    <div className="text-sm text-gray-600">{plan.durationDays} Days for ₹{plan.price.toFixed(2)}</div>
+                    <div className="font-medium text-foreground">{plan.name}</div>
+                    <div className="text-sm text-foreground-secondary">{plan.durationDays} Days for ₹{plan.price.toFixed(2)}</div>
                   </div>
                 </div>
               </label>
             );
           })}
           {globalPlans.length === 0 && (
-            <p className="text-sm text-gray-500">No global plans found. Go to Admin &gt; Plans to create some.</p>
+            <p className="text-sm text-foreground-muted">No global plans found. Go to Admin &gt; Plans to create some.</p>
           )}
         </div>
       </div>

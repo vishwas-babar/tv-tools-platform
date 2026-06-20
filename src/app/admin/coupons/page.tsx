@@ -7,53 +7,53 @@ export default async function AdminCouponsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Manage Coupons</h1>
-      <p className="mt-1 text-gray-600">
+      <h1 className="text-2xl font-bold text-foreground">Manage Coupons</h1>
+      <p className="mt-1 text-foreground-secondary">
         Create and manage discount coupons.
       </p>
 
       {coupons.length === 0 ? (
-        <p className="mt-8 text-center text-gray-500">No coupons created yet.</p>
+        <p className="mt-8 text-center text-foreground-muted">No coupons created yet.</p>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-lg border border-border bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-border bg-surface-elevated">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-500">Code</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Type</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Value</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">Code</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Type</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Value</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Status</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   Created
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {coupons.map((coupon) => (
                 <tr key={coupon.id}>
-                  <td className="px-4 py-3 font-mono font-medium text-gray-900">
+                  <td className="px-4 py-3 font-mono font-medium text-foreground">
                     {coupon.code}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {coupon.discountType}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {coupon.discountType === "PERCENTAGE"
                       ? `${coupon.discountValue}%`
                       : `₹${coupon.discountValue.toFixed(2)}`}
                   </td>
                   <td className="px-4 py-3">
                     {coupon.active ? (
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                      <span className="rounded-full bg-success/15 px-2 py-0.5 text-xs text-success">
                         Active
                       </span>
                     ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                      <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs text-foreground-muted">
                         Inactive
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {new Date(coupon.createdAt).toLocaleDateString()}
                   </td>
                 </tr>

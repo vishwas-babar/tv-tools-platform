@@ -3,26 +3,77 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { toolSchema } from "@/validations/tool";
 
-// GET /api/tools — list all active tools (public)
-export async function GET() {
+const DEFAULT_LIMIT = 12;
+const MAX_LIMIT = 48;
+
+// GET /api/tools — list active tools with pagination (public)
+// Query: ?page=1&limit=12
+export async function GET(request: Request) {
   try {
-    const tools = await prisma.tool.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        imageUrl: true,
-        youtubeUrl: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(1, parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT)
+    );
+    const skip = (page - 1) * limit;
+
+    const where = { isActive: true };
+
+    const [tools, total] = await Promise.all([
+      prisma.tool.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          imageUrl: true,
+          youtubeUrl: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          plans: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              durationDays: true,
+            },
+            orderBy: { price: "asc" },
+          },
+        },
+      }),
+      prisma.tool.count({ where }),
+    ]);
+
+    const data = tools.map(({ plans, ...tool }) => {
+      const lowestPlan = plans[0] ?? null;
+      return {
+        ...tool,
+        planCount: plans.length,
+        startingPrice: lowestPlan?.price ?? null,
+        lowestPlan,
+      };
     });
 
-    return NextResponse.json({ success: true, data: tools });
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    return NextResponse.json({
+      success: true,
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch {
     return NextResponse.json(
       { success: false, error: "Failed to fetch tools" },

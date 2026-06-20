@@ -48,8 +48,8 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-      <p className="mt-1 text-gray-600">
+      <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+      <p className="mt-1 text-foreground-secondary">
         Platform overview and subscription access management.
       </p>
 
@@ -60,70 +60,70 @@ export default async function AdminDashboardPage() {
       <div className="mt-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-foreground">
               Pending Access
             </h2>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-foreground-secondary">
               Paid subscriptions waiting for manual TradingView access.
             </p>
           </div>
           <Link
             href="/admin/subscriptions"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            className="text-sm font-medium text-primary-light hover:text-primary"
           >
             View all subscriptions
           </Link>
         </div>
 
         {pendingSubscriptions.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+          <div className="mt-4 rounded-lg border border-border bg-surface p-6 text-center text-sm text-foreground-muted">
             No subscriptions pending access right now.
           </div>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="mt-4 overflow-hidden rounded-lg border border-border bg-surface">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
+              <thead className="border-b border-border bg-surface-elevated">
                 <tr>
-                  <th className="px-4 py-3 font-medium text-gray-500">User</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">
+                  <th className="px-4 py-3 font-medium text-foreground-muted">User</th>
+                  <th className="px-4 py-3 font-medium text-foreground-muted">
                     TradingView ID
                   </th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Tool</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Plan</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">
+                  <th className="px-4 py-3 font-medium text-foreground-muted">Tool</th>
+                  <th className="px-4 py-3 font-medium text-foreground-muted">Plan</th>
+                  <th className="px-4 py-3 font-medium text-foreground-muted">
                     Purchased
                   </th>
-                  <th className="px-4 py-3 font-medium text-gray-500">
+                  <th className="px-4 py-3 font-medium text-foreground-muted">
                     Status
                   </th>
-                  <th className="px-4 py-3 font-medium text-gray-500">
+                  <th className="px-4 py-3 font-medium text-foreground-muted">
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {pendingSubscriptions.map((sub) => (
                   <tr key={sub.id}>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           {sub.user.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-foreground-muted">
                           {sub.user.email}
                         </p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 text-foreground-secondary">
                       {sub.user.tradingViewId || (
-                        <span className="text-amber-600">Not set</span>
+                        <span className="text-warning">Not set</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-600">{sub.tool.name}</td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 text-foreground-secondary">{sub.tool.name}</td>
+                    <td className="px-4 py-3 text-foreground-secondary">
                       {sub.plan.name} · {sub.plan.durationDays} days
                     </td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 text-foreground-secondary">
                       {new Date(sub.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">

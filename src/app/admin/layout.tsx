@@ -2,12 +2,12 @@ import { Sidebar } from "@/components/sidebar";
 import { ProtectedRouteWrapper } from "@/components/protected-route-wrapper";
 
 const adminItems = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/tools", label: "Tools" },
-  { href: "/admin/plans", label: "Plans" },
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/subscriptions", label: "Subscriptions" },
-  { href: "/admin/coupons", label: "Coupons" },
+  { href: "/admin", label: "Dashboard", icon: "dashboard" as const },
+  { href: "/admin/tools", label: "Tools", icon: "tools" as const },
+  { href: "/admin/plans", label: "Plans", icon: "plans" as const },
+  { href: "/admin/users", label: "Users", icon: "users" as const },
+  { href: "/admin/subscriptions", label: "Subscriptions", icon: "subscriptions" as const },
+  { href: "/admin/coupons", label: "Coupons", icon: "coupons" as const },
 ];
 
 export default function AdminLayout({
@@ -17,9 +17,9 @@ export default function AdminLayout({
 }) {
   return (
     <ProtectedRouteWrapper requireAdmin>
-      <div className="flex min-h-[calc(100vh-57px)]">
+      <div className="flex min-h-[calc(100vh-4rem)]">
         <Sidebar items={adminItems} title="Admin Panel" />
-        <div className="flex-1 p-6">{children}</div>
+        <div className="flex-1 overflow-auto p-6 lg:p-8">{children}</div>
       </div>
     </ProtectedRouteWrapper>
   );

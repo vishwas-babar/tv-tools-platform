@@ -96,50 +96,50 @@ export default function AdminPlansPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Manage Global Plans</h1>
-          <p className="mt-1 text-gray-600">Create reusable plans that can be assigned to multiple tools.</p>
+          <h1 className="text-2xl font-bold text-foreground">Manage Global Plans</h1>
+          <p className="mt-1 text-foreground-secondary">Create reusable plans that can be assigned to multiple tools.</p>
         </div>
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Left Column: List of Plans */}
         <div className="lg:col-span-2">
-          {loading && <p className="text-gray-500">Loading plans...</p>}
-          {error && <p className="text-red-500">{error}</p>}
+          {loading && <p className="text-foreground-muted">Loading plans...</p>}
+          {error && <p className="text-danger">{error}</p>}
 
           {!loading && !error && plans.length === 0 && (
-            <p className="text-gray-500">No global plans created yet.</p>
+            <p className="text-foreground-muted">No global plans created yet.</p>
           )}
 
           {!loading && !error && plans.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div className="overflow-hidden rounded-lg border border-border bg-surface">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
+                <thead className="border-b border-border bg-surface-elevated">
                   <tr>
-                    <th className="px-4 py-3 font-medium text-gray-500">Name</th>
-                    <th className="px-4 py-3 font-medium text-gray-500">Duration (Days)</th>
-                    <th className="px-4 py-3 font-medium text-gray-500">Price (₹)</th>
-                    <th className="px-4 py-3 font-medium text-gray-500">Actions</th>
+                    <th className="px-4 py-3 font-medium text-foreground-muted">Name</th>
+                    <th className="px-4 py-3 font-medium text-foreground-muted">Duration (Days)</th>
+                    <th className="px-4 py-3 font-medium text-foreground-muted">Price (₹)</th>
+                    <th className="px-4 py-3 font-medium text-foreground-muted">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {plans.map((plan) => (
-                    <tr key={plan.id} className={editingId === plan.id ? "bg-blue-50" : ""}>
-                      <td className="px-4 py-3 font-medium text-gray-900">{plan.name}</td>
-                      <td className="px-4 py-3 text-gray-600">{plan.durationDays}</td>
-                      <td className="px-4 py-3 text-gray-600">₹{plan.price.toFixed(2)}</td>
+                    <tr key={plan.id} className={editingId === plan.id ? "bg-primary/10" : ""}>
+                      <td className="px-4 py-3 font-medium text-foreground">{plan.name}</td>
+                      <td className="px-4 py-3 text-foreground-secondary">{plan.durationDays}</td>
+                      <td className="px-4 py-3 text-foreground-secondary">₹{plan.price.toFixed(2)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => handleEditClick(plan)}
-                            className="text-sm text-blue-600 hover:text-blue-800"
+                            className="text-sm text-primary-light hover:text-primary"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(plan.id)}
                             disabled={deletingId === plan.id}
-                            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
+                            className="text-sm text-danger hover:text-danger/80 disabled:opacity-50"
                           >
                             {deletingId === plan.id ? "Deleting..." : "Delete"}
                           </button>
@@ -155,20 +155,20 @@ export default function AdminPlansPage() {
 
         {/* Right Column: Add/Edit Form */}
         <div>
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <div className="rounded-lg border border-border bg-surface p-6">
+            <h2 className="text-lg font-semibold text-foreground">
               {editingId ? "Edit Plan" : "Create New Plan"}
             </h2>
 
             {formError && (
-              <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="mt-4 rounded border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
                 {formError}
               </div>
             )}
 
             <form id="plan-form" onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="name" className="block text-sm font-medium text-foreground-secondary">
                   Plan Name
                 </label>
                 <input
@@ -177,12 +177,12 @@ export default function AdminPlansPage() {
                   type="text"
                   required
                   placeholder="e.g. Monthly Standard"
-                  className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                  className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
               </div>
 
               <div>
-                <label htmlFor="durationDays" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="durationDays" className="block text-sm font-medium text-foreground-secondary">
                   Duration (Days)
                 </label>
                 <input
@@ -192,12 +192,12 @@ export default function AdminPlansPage() {
                   min="1"
                   required
                   placeholder="e.g. 30"
-                  className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                  className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
               </div>
 
               <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="price" className="block text-sm font-medium text-foreground-secondary">
                   Price (₹)
                 </label>
                 <input
@@ -208,7 +208,7 @@ export default function AdminPlansPage() {
                   step="0.01"
                   required
                   placeholder="e.g. 29.99"
-                  className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                  className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
               </div>
 
@@ -216,7 +216,7 @@ export default function AdminPlansPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                  className="flex-1 rounded bg-primary px-4 py-2 text-sm font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : editingId ? "Update Plan" : "Create Plan"}
                 </button>
@@ -224,7 +224,7 @@ export default function AdminPlansPage() {
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    className="rounded border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-foreground-secondary hover:bg-surface-elevated"
                   >
                     Cancel
                   </button>

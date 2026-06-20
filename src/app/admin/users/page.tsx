@@ -16,31 +16,31 @@ export default async function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Manage Users</h1>
-      <p className="mt-1 text-gray-600">View and manage platform users.</p>
+      <h1 className="text-2xl font-bold text-foreground">Manage Users</h1>
+      <p className="mt-1 text-foreground-secondary">View and manage platform users.</p>
 
-      <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="mt-6 overflow-hidden rounded-lg border border-border bg-surface">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-border bg-surface-elevated">
             <tr>
-              <th className="px-4 py-3 font-medium text-gray-500">Name</th>
-              <th className="px-4 py-3 font-medium text-gray-500">Email</th>
-              <th className="px-4 py-3 font-medium text-gray-500">
+              <th className="px-4 py-3 font-medium text-foreground-muted">Name</th>
+              <th className="px-4 py-3 font-medium text-foreground-muted">Email</th>
+              <th className="px-4 py-3 font-medium text-foreground-muted">
                 TradingView ID
               </th>
-              <th className="px-4 py-3 font-medium text-gray-500">Role</th>
-              <th className="px-4 py-3 font-medium text-gray-500">Subs</th>
-              <th className="px-4 py-3 font-medium text-gray-500">Joined</th>
+              <th className="px-4 py-3 font-medium text-foreground-muted">Role</th>
+              <th className="px-4 py-3 font-medium text-foreground-muted">Subs</th>
+              <th className="px-4 py-3 font-medium text-foreground-muted">Joined</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-border">
             {users.map((user) => (
               <tr key={user.id}>
-                <td className="px-4 py-3 font-medium text-gray-900">
+                <td className="px-4 py-3 font-medium text-foreground">
                   {user.name}
                 </td>
-                <td className="px-4 py-3 text-gray-600">{user.email}</td>
-                <td className="px-4 py-3 text-gray-600">
+                <td className="px-4 py-3 text-foreground-secondary">{user.email}</td>
+                <td className="px-4 py-3 text-foreground-secondary">
                   {user.tradingViewId ?? "—"}
                 </td>
                 <td className="px-4 py-3">
@@ -48,16 +48,16 @@ export default async function AdminUsersPage() {
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       user.role === "ADMIN"
                         ? "bg-purple-100 text-purple-700"
-                        : "bg-gray-100 text-gray-600"
+                        : "bg-surface-elevated text-foreground-secondary"
                     }`}
                   >
                     {user.role}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-gray-600">
+                <td className="px-4 py-3 text-foreground-secondary">
                   {user._count.subscriptions}
                 </td>
-                <td className="px-4 py-3 text-gray-600">
+                <td className="px-4 py-3 text-foreground-secondary">
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
               </tr>

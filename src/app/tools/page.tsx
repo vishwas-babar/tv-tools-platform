@@ -1,64 +1,32 @@
-"use client";
+import { Suspense } from "react";
+import { ToolsPageContent } from "./tools-page-content";
 
-import { useEffect, useState } from "react";
-import { api } from "@/lib/axios";
-import { ToolCard } from "@/components/tool-card";
-
-interface Tool {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  imageUrl: string | null;
-  isActive: boolean;
+function ToolsPageSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <div className="h-9 w-48 rounded bg-surface-elevated" />
+      <div className="mt-2 h-5 w-96 max-w-full rounded bg-surface-elevated" />
+      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="overflow-hidden rounded-2xl border border-border bg-surface">
+            <div className="h-48 bg-surface-elevated" />
+            <div className="space-y-3 p-5">
+              <div className="h-5 w-2/3 rounded bg-surface-elevated" />
+              <div className="h-4 w-full rounded bg-surface-elevated" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function ToolsPage() {
-  const [tools, setTools] = useState<Tool[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    api
-      .get<{ success: boolean; data: Tool[] }>("/tools")
-      .then(({ data }) => setTools(data.data))
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900">All Tools</h1>
-      <p className="mt-2 text-gray-600">
-        Browse our collection of premium TradingView indicators and tools.
-      </p>
-
-      {loading && (
-        <p className="mt-8 text-center text-gray-500">Loading tools...</p>
-      )}
-
-      {error && <p className="mt-8 text-center text-red-500">{error}</p>}
-
-      {!loading && !error && tools.length === 0 && (
-        <p className="mt-8 text-center text-gray-500">
-          No tools available at the moment.
-        </p>
-      )}
-
-      {!loading && !error && tools.length > 0 && (
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {tools.map((tool) => (
-            <ToolCard
-              key={tool.id}
-              name={tool.name}
-              slug={tool.slug}
-              description={tool.description}
-              imageUrl={tool.imageUrl}
-              isActive={tool.isActive}
-            />
-          ))}
-        </div>
-      )}
+      <Suspense fallback={<ToolsPageSkeleton />}>
+        <ToolsPageContent />
+      </Suspense>
     </div>
   );
 }

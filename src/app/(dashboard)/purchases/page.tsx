@@ -19,56 +19,56 @@ export default async function PurchasesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Purchases</h1>
-      <p className="mt-1 text-gray-600">Your subscription history.</p>
+      <h1 className="text-2xl font-bold text-foreground">Purchases</h1>
+      <p className="mt-1 text-foreground-secondary">Your subscription history.</p>
 
       {subscriptions.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-gray-200 bg-white p-8 text-center">
-          <p className="text-gray-500">
+        <div className="mt-8 rounded-lg border border-border bg-surface p-8 text-center">
+          <p className="text-foreground-muted">
             You don&apos;t have any subscriptions yet.
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="mt-6 overflow-hidden rounded-lg border border-border bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-border bg-surface-elevated">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-500">Tool</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Plan</th>
-                <th className="px-4 py-3 font-medium text-gray-500">Price</th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">Tool</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Plan</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Price</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   Purchased
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   Start Date
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">
+                <th className="px-4 py-3 font-medium text-foreground-muted">
                   End Date
                 </th>
-                <th className="px-4 py-3 font-medium text-gray-500">Status</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {subscriptions.map((sub) => (
                 <tr key={sub.id}>
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {sub.tool.name}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {sub.plan.name} · {sub.plan.durationDays} days
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     ₹{sub.plan.price.toFixed(2)}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {new Date(sub.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {sub.startDate
                       ? formatSubscriptionDateTime(new Date(sub.startDate))
                       : "—"}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {sub.endDate
                       ? formatSubscriptionDateTime(new Date(sub.endDate))
                       : "—"}

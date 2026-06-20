@@ -39,11 +39,11 @@ export function GrantAccessButton({ subscriptionId }: GrantAccessButtonProps) {
       <button
         onClick={handleGrantAccess}
         disabled={loading}
-        className="rounded bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+        className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-primary-hover disabled:opacity-50"
       >
         {loading ? "Granting..." : "Grant Access"}
       </button>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
     </div>
   );
 }
