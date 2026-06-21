@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { markCouponAsUsed } from "@/lib/coupon";
 import { sendPurchaseEmails } from "@/lib/purchase-emails";
 
 /**
@@ -24,6 +25,10 @@ export async function provisionSubscriptions(orderId: string) {
   });
 
   if (existingSubs.length > 0) return;
+
+  if (order.couponId) {
+    await markCouponAsUsed(order.couponId);
+  }
 
   await prisma.subscription.createMany({
     data: order.items.map((item) => ({

@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cashfree } from "@/lib/cashfree";
-import { z } from "zod";
+import { applyCouponToSubtotal, assertCouponAvailable } from "@/lib/coupon";
+import { CheckoutError, computeCartPricing } from "@/lib/checkout-pricing";
+import { provisionSubscriptions } from "@/lib/provision-subscriptions";
+import { checkoutWithCouponSchema } from "@/validations/checkout";
 
 function getCashfreeErrorMessage(error: unknown): string | null {
   if (
@@ -23,52 +26,29 @@ function getCashfreeErrorMessage(error: unknown): string | null {
   return null;
 }
 
-const createOrderSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        toolId: z.string().min(1),
-        planId: z.string().min(1),
-      })
-    )
-    .min(1, "Cart must have at least one item"),
-});
-
 // POST /api/checkout/create-order
 export async function POST(request: Request) {
   try {
-    // 1. Authenticate user
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const userId = session.user.id;
-
-    // 2. Validate request body
     const body = await request.json();
-    const parsed = createOrderSchema.safeParse(body);
+    const parsed = checkoutWithCouponSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: "Invalid cart data" },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
-    const { items } = parsed.data;
+    const { items, couponCode } = parsed.data;
 
-    const uniqueToolIds = new Set(items.map((i) => i.toolId));
-    if (uniqueToolIds.size !== items.length) {
-      return NextResponse.json(
-        { success: false, error: "Only one plan can be selected per tool" },
-        { status: 400 }
-      );
-    }
-
-    // 3. Fetch user details (need phone + email for Cashfree)
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, email: true, phone: true, name: true },
@@ -77,98 +57,40 @@ export async function POST(request: Request) {
     if (!user || !user.phone) {
       return NextResponse.json(
         { success: false, error: "Phone number is required for checkout" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // 4. Re-fetch prices from DB — NEVER trust client prices
-    const toolIds = [...new Set(items.map((i) => i.toolId))];
-    const planIds = [...new Set(items.map((i) => i.planId))];
+    const { orderItems, subtotalAmount } = await computeCartPricing(
+      userId,
+      items,
+    );
 
-    const [tools, plans] = await Promise.all([
-      prisma.tool.findMany({
-        where: { id: { in: toolIds }, isActive: true },
-        select: { id: true, name: true },
-      }),
-      prisma.plan.findMany({
-        where: { id: { in: planIds } },
-        select: { id: true, name: true, price: true, durationDays: true },
-      }),
-    ]);
+    let totalAmount = subtotalAmount;
+    let discountAmount = 0;
+    let couponId: string | undefined;
+    let appliedCouponCode: string | undefined;
 
-    const toolMap = new Map(tools.map((t) => [t.id, t]));
-    const planMap = new Map(plans.map((p) => [p.id, p]));
+    if (couponCode) {
+      const applied = await applyCouponToSubtotal(subtotalAmount, couponCode);
+      totalAmount = applied.totalAmount;
+      discountAmount = applied.discountAmount;
+      couponId = applied.coupon.id;
+      appliedCouponCode = applied.coupon.code;
 
-    // Validate that all tools and plans exist
-    for (const item of items) {
-      if (!toolMap.has(item.toolId)) {
-        return NextResponse.json(
-          { success: false, error: `Tool not found or inactive: ${item.toolId}` },
-          { status: 400 }
-        );
-      }
-      if (!planMap.has(item.planId)) {
-        return NextResponse.json(
-          { success: false, error: `Plan not found: ${item.planId}` },
-          { status: 400 }
-        );
-      }
+      // Re-check right before creating the order to avoid race conditions.
+      await assertCouponAvailable(couponId);
     }
 
-    // 5. Check for existing active subscriptions (prevent duplicate purchases)
-    const existingSubscriptions = await prisma.subscription.findMany({
-      where: {
-        userId,
-        toolId: { in: items.map((item) => item.toolId) },
-        OR: [
-          { status: "PENDING_ACCESS" },
-          { status: "ACTIVE", endDate: { gt: new Date() } },
-        ],
-      },
-      select: { toolId: true },
-    });
-
-    if (existingSubscriptions.length > 0) {
-      const dupeToolNames = existingSubscriptions
-        .map((s) => toolMap.get(s.toolId)?.name ?? s.toolId)
-        .join(", ");
-      return NextResponse.json(
-        {
-          success: false,
-          error: `You already have active subscriptions for: ${dupeToolNames}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // 6. Compute total from DB prices
-    const orderItems = items.map((item) => {
-      const plan = planMap.get(item.planId)!;
-      return {
-        toolId: item.toolId,
-        planId: item.planId,
-        price: plan.price,
-      };
-    });
-
-    const totalAmount = Math.round(
-      orderItems.reduce((sum, item) => sum + item.price, 0) * 100
-    ) / 100;
-
-    if (totalAmount <= 0) {
-      return NextResponse.json(
-        { success: false, error: "Invalid order total" },
-        { status: 400 }
-      );
-    }
-
-    // 7. Generate a unique order ID
     const cashfreeOrderId = `order_${Date.now()}_${userId.slice(-6)}`;
 
-    // 8. Create the order in DB first
     const order = await prisma.order.create({
       data: {
         userId,
+        subtotalAmount,
+        discountAmount: couponCode ? discountAmount : null,
+        couponId: couponId ?? null,
+        couponCode: appliedCouponCode ?? null,
         totalAmount,
         status: "PENDING",
         cashfreeOrderId,
@@ -178,7 +100,25 @@ export async function POST(request: Request) {
       },
     });
 
-    // 9. Create Cashfree order
+    if (totalAmount === 0) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { status: "PAID" },
+      });
+      await provisionSubscriptions(order.id);
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          is_free: true,
+          cashfree_order_id: cashfreeOrderId,
+          subtotal_amount: subtotalAmount,
+          discount_amount: discountAmount,
+          total_amount: 0,
+        },
+      });
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const cashfreeRequest = {
       order_amount: totalAmount,
@@ -207,7 +147,7 @@ export async function POST(request: Request) {
       console.error("Cashfree create order error:", cashfreeError);
       return NextResponse.json(
         { success: false, error: message ?? "Failed to create payment session" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -215,11 +155,10 @@ export async function POST(request: Request) {
       await prisma.order.delete({ where: { id: order.id } });
       return NextResponse.json(
         { success: false, error: "Failed to create payment session" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    // 10. Save the payment session ID
     await prisma.order.update({
       where: { id: order.id },
       data: { paymentSessionId },
@@ -230,13 +169,43 @@ export async function POST(request: Request) {
       data: {
         payment_session_id: paymentSessionId,
         cashfree_order_id: cashfreeOrderId,
+        subtotal_amount: subtotalAmount,
+        discount_amount: discountAmount,
+        total_amount: totalAmount,
       },
     });
   } catch (error) {
+    if (error instanceof CheckoutError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.status },
+      );
+    }
+
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 },
+      );
+    }
+
     console.error("Create order error:", error);
+
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { success: false, error: "This coupon has already been used" },
+        { status: 409 },
+      );
+    }
+
     return NextResponse.json(
       { success: false, error: "Failed to create order" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

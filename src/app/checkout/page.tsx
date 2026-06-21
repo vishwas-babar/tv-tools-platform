@@ -4,21 +4,73 @@ import { useCart } from "@/contexts/cart-context";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/axios";
+import { formatDuration, formatPrice } from "@/lib/format";
 import { load } from "@cashfreepayments/cashfree-js";
 
-function formatDuration(days: number): string {
-  if (days === 365) return "1 Year";
-  if (days === 90) return "3 Months";
-  if (days === 30) return "1 Month";
-  if (days === 7) return "1 Week";
-  return `${days} Days`;
-}
+type AppliedCoupon = {
+  couponCode: string;
+  discountLabel: string;
+  subtotalAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+};
 
 export default function CheckoutPage() {
   const { items, totalAmount, itemCount } = useCart();
   const router = useRouter();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(
+    null,
+  );
+
+  const payableTotal = appliedCoupon?.totalAmount ?? totalAmount;
+  const isFreeCheckout = payableTotal === 0;
+
+  async function handleApplyCoupon() {
+    const code = couponInput.trim();
+    if (!code) return;
+
+    setCouponError(null);
+    setCouponLoading(true);
+
+    try {
+      const { data: res } = await api.post<{
+        success: boolean;
+        data: AppliedCoupon & { discountType: string };
+        error?: string;
+      }>("/checkout/validate-coupon", {
+        couponCode: code,
+        items: items.map((item) => ({
+          toolId: item.toolId,
+          planId: item.planId,
+        })),
+      });
+
+      if (!res.success || !res.data) {
+        throw new Error(res.error || "Failed to apply coupon");
+      }
+
+      setAppliedCoupon(res.data);
+      setCouponInput(res.data.couponCode);
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponError(
+        err instanceof Error ? err.message : "Failed to apply coupon",
+      );
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
 
   async function handlePayment() {
     if (items.length === 0) return;
@@ -26,23 +78,35 @@ export default function CheckoutPage() {
     setProcessing(true);
 
     try {
-      // 1. Create order on the server
       const { data: res } = await api.post<{
         success: boolean;
-        data: { payment_session_id: string; cashfree_order_id: string };
+        data: {
+          payment_session_id?: string;
+          cashfree_order_id: string;
+          is_free?: boolean;
+        };
         error?: string;
       }>("/checkout/create-order", {
         items: items.map((item) => ({
           toolId: item.toolId,
           planId: item.planId,
         })),
+        ...(appliedCoupon ? { couponCode: appliedCoupon.couponCode } : {}),
       });
 
-      if (!res.success || !res.data?.payment_session_id) {
+      if (!res.success || !res.data?.cashfree_order_id) {
         throw new Error(res.error || "Failed to create order");
       }
 
-      // 2. Initialize Cashfree JS SDK
+      if (res.data.is_free) {
+        router.push(`/checkout/status?order_id=${res.data.cashfree_order_id}`);
+        return;
+      }
+
+      if (!res.data.payment_session_id) {
+        throw new Error("Failed to create payment session");
+      }
+
       const cashfreeEnv = process.env.NEXT_PUBLIC_CASHFREE_ENV || "sandbox";
       const cashfree = await load({
         mode: cashfreeEnv as "sandbox" | "production",
@@ -52,13 +116,11 @@ export default function CheckoutPage() {
         throw new Error("Failed to load payment gateway");
       }
 
-      // 3. Open Cashfree checkout
       const result = await cashfree.checkout({
         paymentSessionId: res.data.payment_session_id,
         redirectTarget: "_self",
       });
 
-      // If we reach here (shouldn't with _self redirect), handle it
       if (result.error) {
         setError(result.error.message || "Payment failed");
       }
@@ -115,7 +177,6 @@ export default function CheckoutPage() {
         </div>
       )}
 
-      {/* Order Summary */}
       <div className="mt-8 rounded-lg border border-border bg-surface">
         <div className="border-b border-border px-6 py-4">
           <h2 className="text-lg font-semibold text-foreground">
@@ -138,27 +199,82 @@ export default function CheckoutPage() {
                 </p>
               </div>
               <p className="text-sm font-semibold text-foreground">
-                ₹{item.price.toFixed(2)}
+                {formatPrice(item.price)}
               </p>
             </li>
           ))}
         </ul>
 
         <div className="border-t border-border px-6 py-4">
-          <div className="flex items-center justify-between">
+          <label
+            htmlFor="coupon-code"
+            className="block text-sm font-medium text-foreground-secondary"
+          >
+            Coupon code
+          </label>
+          <div className="mt-2 flex gap-2">
+            <input
+              id="coupon-code"
+              type="text"
+              value={couponInput}
+              onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
+              disabled={Boolean(appliedCoupon) || couponLoading}
+              placeholder="Enter code"
+              className="flex-1 rounded border border-border-subtle px-3 py-2 text-sm uppercase focus:border-primary focus:outline-none disabled:bg-surface-elevated"
+            />
+            {appliedCoupon ? (
+              <button
+                type="button"
+                onClick={handleRemoveCoupon}
+                className="rounded border border-border-subtle px-4 py-2 text-sm font-medium text-foreground-secondary hover:bg-surface-elevated"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={couponLoading || !couponInput.trim()}
+                className="rounded bg-surface-elevated px-4 py-2 text-sm font-medium text-foreground hover:bg-border disabled:opacity-50"
+              >
+                {couponLoading ? "Applying..." : "Apply"}
+              </button>
+            )}
+          </div>
+          {couponError && (
+            <p className="mt-2 text-sm text-danger">{couponError}</p>
+          )}
+          {appliedCoupon && (
+            <p className="mt-2 text-sm text-success">
+              {appliedCoupon.couponCode} applied ({appliedCoupon.discountLabel})
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2 border-t border-border px-6 py-4">
+          <div className="flex items-center justify-between text-sm text-foreground-secondary">
+            <span>Subtotal</span>
+            <span>{formatPrice(totalAmount)}</span>
+          </div>
+          {appliedCoupon && (
+            <div className="flex items-center justify-between text-sm text-success">
+              <span>Discount ({appliedCoupon.couponCode})</span>
+              <span>-{formatPrice(appliedCoupon.discountAmount)}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-border pt-3">
             <span className="text-base font-semibold text-foreground">Total</span>
             <span className="text-xl font-bold text-foreground">
-              ₹{totalAmount.toFixed(2)}
+              {formatPrice(payableTotal)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Pay Button */}
       <button
         onClick={handlePayment}
         disabled={processing}
-        className="mt-6 w-full rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-foreground hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="mt-6 w-full rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
       >
         {processing ? (
           <span className="flex items-center justify-center gap-2">
@@ -183,14 +299,17 @@ export default function CheckoutPage() {
             </svg>
             Processing...
           </span>
+        ) : isFreeCheckout ? (
+          "Complete order (Free)"
         ) : (
-          `Pay ₹${totalAmount.toFixed(2)}`
+          `Pay ${formatPrice(payableTotal)}`
         )}
       </button>
 
       <p className="mt-4 text-center text-xs text-foreground-muted">
-        Payments are securely processed by Cashfree. Your card details are never
-        stored on our servers.
+        {isFreeCheckout
+          ? "No payment required — your coupon covers the full order amount."
+          : "Payments are securely processed by Cashfree. Your card details are never stored on our servers."}
       </p>
     </div>
   );

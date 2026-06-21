@@ -1,10 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import bcryptjs from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 import "dotenv/config";
+import { createPgPool } from "../src/lib/db-pool";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = createPgPool();
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
@@ -90,26 +90,46 @@ async function main() {
     { name: "Yearly Premium", durationDays: 365, price: 249.99 },
   ];
 
-  await prisma.plan.deleteMany(); // Reset plans
-
   const createdPlans = [];
   for (const plan of planData) {
-    createdPlans.push(await prisma.plan.create({ data: plan }));
+    const existing = await prisma.plan.findFirst({
+      where: { name: plan.name, durationDays: plan.durationDays },
+    });
+    createdPlans.push(
+      existing
+        ? await prisma.plan.update({ where: { id: existing.id }, data: plan })
+        : await prisma.plan.create({ data: plan }),
+    );
   }
-  console.log(`✅ Plans: ${planData.length} global plans created`);
+  console.log(`✅ Plans: ${planData.length} global plans upserted`);
 
-  // Link tools to some plans
+  // ── Coupons ─────────────────────────────────────────────────────────────
+  const couponData = [
+    { code: "SAVE10", discountType: "PERCENTAGE" as const, discountValue: 10 },
+    { code: "FLAT50", discountType: "FIXED" as const, discountValue: 50 },
+  ];
+
+  for (const coupon of couponData) {
+    await prisma.coupon.upsert({
+      where: { code: coupon.code },
+      update: coupon,
+      create: coupon,
+    });
+  }
+  console.log(`✅ Coupons: ${couponData.map((c) => c.code).join(", ")}`);
+
+  // Link tools to some plans (set replaces links so re-seeding is idempotent)
   await prisma.tool.update({
     where: { id: tool1.id },
-    data: { plans: { connect: [{ id: createdPlans[6].id }, { id: createdPlans[7].id }, { id: createdPlans[8].id }] } },
+    data: { plans: { set: [{ id: createdPlans[6].id }, { id: createdPlans[7].id }, { id: createdPlans[8].id }] } },
   });
   await prisma.tool.update({
     where: { id: tool2.id },
-    data: { plans: { connect: [{ id: createdPlans[3].id }, { id: createdPlans[4].id }, { id: createdPlans[5].id }] } },
+    data: { plans: { set: [{ id: createdPlans[3].id }, { id: createdPlans[4].id }, { id: createdPlans[5].id }] } },
   });
   await prisma.tool.update({
     where: { id: tool3.id },
-    data: { plans: { connect: [{ id: createdPlans[0].id }, { id: createdPlans[1].id }, { id: createdPlans[2].id }] } },
+    data: { plans: { set: [{ id: createdPlans[0].id }, { id: createdPlans[1].id }, { id: createdPlans[2].id }] } },
   });
 
   console.log("🎉 Seeding complete!");
