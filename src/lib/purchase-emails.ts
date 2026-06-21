@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { isEmailConfigured, sendEmail } from "@/lib/email";
+import { SITE_NAME } from "@/lib/site";
 
 function escapeHtml(value: string): string {
   return value
@@ -73,7 +74,7 @@ export async function sendPurchaseEmails(orderId: string) {
   const buyerEmail = order.user.email;
 
   const adminText = [
-    "A user has completed a purchase on TV Tools Platform.",
+    `A user has completed a purchase on ${SITE_NAME}.`,
     "",
     "Please grant access to the following tools:",
     toolList.text,
@@ -89,7 +90,7 @@ export async function sendPurchaseEmails(orderId: string) {
   ].join("\n");
 
   const adminHtml = `
-    <p>A user has completed a purchase on TV Tools Platform.</p>
+    <p>A user has completed a purchase on ${escapeHtml(SITE_NAME)}.</p>
     <p><strong>Please grant access to the following tools:</strong></p>
     ${toolList.html}
     <p><strong>Buyer details:</strong></p>
@@ -106,7 +107,7 @@ export async function sendPurchaseEmails(orderId: string) {
   const buyerText = [
     `Hi ${buyerName},`,
     "",
-    "Thank you for your purchase on TV Tools Platform.",
+    `Thank you for your purchase on ${SITE_NAME}.`,
     "",
     "Your purchased tools:",
     toolList.text,
@@ -121,7 +122,7 @@ export async function sendPurchaseEmails(orderId: string) {
 
   const buyerHtml = `
     <p>Hi ${escapeHtml(buyerName)},</p>
-    <p>Thank you for your purchase on TV Tools Platform.</p>
+    <p>Thank you for your purchase on ${escapeHtml(SITE_NAME)}.</p>
     <p><strong>Your purchased tools:</strong></p>
     ${toolList.html}
     <p>You will receive access to your purchased tools within the next 24 hours.</p>

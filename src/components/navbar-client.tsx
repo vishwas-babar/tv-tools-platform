@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { isNavActive } from "@/lib/nav";
-import { NavIcon } from "@/components/nav-icons";
+import { SITE_LOGO, SITE_NAME } from "@/lib/site";
 import { NavbarCartButton } from "@/components/navbar-cart-button";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -41,22 +42,33 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
         {/* Logo */}
         <Link href={homeHref} className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent-purple text-foreground shadow-lg shadow-primary/20">
-            <NavIcon name="chart" className="h-5 w-5" />
-          </span>
-          <span className="hidden font-bold text-foreground sm:inline">
-            TV Tools Platform
+          <Image
+            src={SITE_LOGO}
+            alt={SITE_NAME}
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-full object-cover shadow-lg shadow-primary/20"
+            priority
+          />
+          <span className="hidden font-bold tracking-wide text-foreground sm:inline">
+            {SITE_NAME}
           </span>
         </Link>
 
-        {/* Desktop nav — admin only */}
-        {isLoggedIn && isAdmin && (
-          <nav className="hidden items-center gap-1 md:flex">
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-1 md:flex">
+          <Link href="/tools" className={linkClass("/tools")}>
+            Tools
+          </Link>
+          <Link href="/about" className={linkClass("/about")}>
+            About
+          </Link>
+          {isLoggedIn && isAdmin && (
             <Link href="/admin" className={linkClass("/admin")}>
               Admin
             </Link>
-          </nav>
-        )}
+          )}
+        </nav>
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
@@ -80,9 +92,6 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
             </>
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
-              <Link href="/tools" className={linkClass("/tools")}>
-                Tools
-              </Link>
               <Link href="/login" className={linkClass("/login")}>
                 Login
               </Link>
@@ -128,6 +137,13 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
                   Tools
                 </Link>
                 <Link
+                  href="/about"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/about")}
+                >
+                  About
+                </Link>
+                <Link
                   href="/profile"
                   onClick={() => setMobileOpen(false)}
                   className={linkClass("/profile")}
@@ -162,6 +178,13 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
                   className={linkClass("/tools")}
                 >
                   Tools
+                </Link>
+                <Link
+                  href="/about"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/about")}
+                >
+                  About
                 </Link>
                 <Link
                   href="/login"

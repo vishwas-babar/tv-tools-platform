@@ -29,7 +29,28 @@ const BENEFITS = [
   },
 ];
 
-const PAYMENT_LABELS = ["UPI", "VISA", "MC", "RuPay"];
+const PAYMENT_METHODS = [
+  {
+    src: "/images/payments/upi.svg",
+    alt: "UPI",
+    imageClassName: "h-3 w-auto",
+  },
+  {
+    src: "/images/payments/visa.svg",
+    alt: "Visa",
+    imageClassName: "h-4 w-auto",
+  },
+  {
+    src: "/images/payments/mastercard.svg",
+    alt: "Mastercard",
+    imageClassName: "h-4 w-auto",
+  },
+  {
+    src: "/images/payments/rupay.svg",
+    alt: "RuPay",
+    imageClassName: "h-3 w-auto",
+  },
+] as const;
 
 export function SocialProofSection() {
   const [thumbError, setThumbError] = useState(false);
@@ -90,20 +111,24 @@ export function SocialProofSection() {
             </div>
 
             {/* Payments */}
-            <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
-              <ShieldIcon className="h-8 w-8 text-success" />
+            <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
+              <ShieldIcon className="h-6 w-6 text-success" />
               <p className="font-semibold text-foreground">Secure & Safe Payments</p>
               <p className="text-sm text-foreground-muted">
                 All major payment methods supported
               </p>
-              <div className="mt-2 flex flex-wrap justify-center gap-2">
-                {PAYMENT_LABELS.map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-md border border-border-subtle bg-surface-elevated px-3 py-1.5 text-xs font-medium text-foreground-secondary"
+              <div className="mt-1 flex flex-wrap items-center justify-center gap-1.5">
+                {PAYMENT_METHODS.map(({ src, alt, imageClassName }) => (
+                  <div
+                    key={alt}
+                    className="flex h-6 shrink-0 items-center justify-center rounded bg-white px-2 py-0.5"
                   >
-                    {label}
-                  </span>
+                    <img
+                      src={src}
+                      alt={alt}
+                      className={`max-h-full object-contain ${imageClassName}`}
+                    />
+                  </div>
                 ))}
               </div>
             </div>
