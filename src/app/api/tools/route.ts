@@ -7,7 +7,7 @@ const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 48;
 
 // GET /api/tools — list active tools with pagination (public)
-// Query: ?page=1&limit=12
+// Query: ?page=1&limit=12&search=fibonacci
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -16,9 +16,21 @@ export async function GET(request: Request) {
       MAX_LIMIT,
       Math.max(1, parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT)
     );
+    const search = searchParams.get("search")?.trim() ?? "";
     const skip = (page - 1) * limit;
 
-    const where = { isActive: true };
+    const where = {
+      isActive: true,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: "insensitive" as const } },
+              { description: { contains: search, mode: "insensitive" as const } },
+              { slug: { contains: search, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+    };
 
     const [tools, total] = await Promise.all([
       prisma.tool.findMany({

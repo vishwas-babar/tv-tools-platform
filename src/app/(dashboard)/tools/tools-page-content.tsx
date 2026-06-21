@@ -35,6 +35,10 @@ interface PaginationMeta {
 }
 
 const PAGE_SIZE = 12;
+const SEARCH_DEBOUNCE_MS = 300;
+
+const searchInputClassName =
+  "w-full rounded-lg border border-border-subtle bg-surface-elevated py-2.5 pl-10 pr-10 text-sm text-foreground placeholder:text-foreground-muted focus:border-primary focus:outline-none";
 
 function ToolCardSkeleton() {
   return (
@@ -56,13 +60,15 @@ export function ToolsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+  const searchQuery = searchParams.get("search")?.trim() ?? "";
 
   const [tools, setTools] = useState<Tool[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState(searchQuery);
 
-  const fetchTools = useCallback(async (currentPage: number) => {
+  const fetchTools = useCallback(async (currentPage: number, search: string) => {
     setLoading(true);
     setError(null);
 
@@ -71,7 +77,13 @@ export function ToolsPageContent() {
         success: boolean;
         data: Tool[];
         pagination: PaginationMeta;
-      }>("/tools", { params: { page: currentPage, limit: PAGE_SIZE } });
+      }>("/tools", {
+        params: {
+          page: currentPage,
+          limit: PAGE_SIZE,
+          ...(search ? { search } : {}),
+        },
+      });
 
       setTools(data.data);
       setPagination(data.pagination);
@@ -83,8 +95,32 @@ export function ToolsPageContent() {
   }, []);
 
   useEffect(() => {
-    fetchTools(page);
-  }, [page, fetchTools]);
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const trimmed = searchInput.trim();
+    if (trimmed === searchQuery) return;
+
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (trimmed) {
+        params.set("search", trimmed);
+      } else {
+        params.delete("search");
+      }
+      params.delete("page");
+
+      const query = params.toString();
+      router.push(query ? `/tools?${query}` : "/tools", { scroll: false });
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput, searchQuery, searchParams, router]);
+
+  useEffect(() => {
+    fetchTools(page, searchQuery);
+  }, [page, searchQuery, fetchTools]);
 
   function handlePageChange(newPage: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -98,6 +134,15 @@ export function ToolsPageContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function handleClearSearch() {
+    setSearchInput("");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    params.delete("page");
+    const query = params.toString();
+    router.push(query ? `/tools?${query}` : "/tools", { scroll: false });
+  }
+
   return (
     <>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -109,8 +154,46 @@ export function ToolsPageContent() {
         </div>
         {pagination && !loading && (
           <p className="text-sm text-foreground-muted">
-            {pagination.total} tool{pagination.total !== 1 ? "s" : ""} available
+            {pagination.total} tool{pagination.total !== 1 ? "s" : ""}
+            {searchQuery ? " found" : " available"}
           </p>
+        )}
+      </div>
+
+      <div className="relative mt-6 max-w-xl">
+        <svg
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"
+          />
+        </svg>
+        <input
+          type="search"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder="Search tools by name or description..."
+          aria-label="Search tools"
+          className={searchInputClassName}
+        />
+        {searchInput && (
+          <button
+            type="button"
+            onClick={handleClearSearch}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-muted transition-colors hover:text-foreground"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         )}
       </div>
 
@@ -130,7 +213,9 @@ export function ToolsPageContent() {
 
       {!loading && !error && tools.length === 0 && (
         <p className="mt-8 text-center text-foreground-muted">
-          No tools available at the moment.
+          {searchQuery
+            ? `No tools found for "${searchQuery}".`
+            : "No tools available at the moment."}
         </p>
       )}
 
