@@ -35,13 +35,11 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
     }`;
   }
 
-  const homeHref = isLoggedIn ? "/dashboard" : "/";
-
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4">
         {/* Logo */}
-        <Link href={homeHref} className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <Image
             src={SITE_LOGO}
             alt={SITE_NAME}
