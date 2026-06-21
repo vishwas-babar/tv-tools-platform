@@ -2,13 +2,21 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
+function usesSecureCookies(request: NextRequest) {
+  return (
+    request.nextUrl.protocol === "https:" ||
+    process.env.AUTH_URL?.startsWith("https://") === true
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get the JWT token from the session cookie
   const token = await getToken({
     req: request,
     secret: process.env.AUTH_SECRET,
+    // Production uses __Secure-authjs.session-token; dev uses authjs.session-token.
+    secureCookie: usesSecureCookies(request),
   });
 
   const isLoggedIn = !!token;
