@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { isNavActive } from "@/lib/nav";
 import { SITE_LOGO, SITE_NAME } from "@/lib/site";
+import { adminPanelItems } from "@/lib/panel-nav";
 import { NavbarCartButton } from "@/components/navbar-cart-button";
 import { LogoutButton } from "@/components/logout-button";
 
@@ -156,13 +157,21 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
                   Purchases
                 </Link>
                 {isAdmin && (
-                  <Link
-                    href="/admin"
-                    onClick={() => setMobileOpen(false)}
-                    className={linkClass("/admin")}
-                  >
-                    Admin
-                  </Link>
+                  <>
+                    <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+                      Admin Panel
+                    </p>
+                    {adminPanelItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={linkClass(item.href)}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </>
                 )}
                 <div className="mt-2 border-t border-border pt-2">
                   <LogoutButton className="w-full justify-start rounded-lg px-3 py-2.5 text-sm hover:bg-surface-elevated" />

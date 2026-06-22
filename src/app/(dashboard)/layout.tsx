@@ -1,12 +1,6 @@
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
-
-const dashboardItems = [
-  { href: "/dashboard", label: "Dashboard", icon: "dashboard" as const },
-  { href: "/tools", label: "Tools", icon: "tools" as const },
-  { href: "/profile", label: "Profile", icon: "profile" as const },
-  { href: "/purchases", label: "Purchases", icon: "purchases" as const },
-];
+import { userPanelItems } from "@/lib/panel-nav";
 
 export default async function DashboardLayout({
   children,
@@ -25,7 +19,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell items={dashboardItems} title="User Panel">
+    <AppShell items={userPanelItems} title="User Panel">
       {children}
     </AppShell>
   );
