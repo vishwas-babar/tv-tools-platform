@@ -6,6 +6,7 @@ import {
 } from "@/lib/coupon";
 import { CheckoutError, computeCartPricing } from "@/lib/checkout-pricing";
 import { checkoutWithCouponSchema } from "@/validations/checkout";
+import { formatValidationError } from "@/lib/validation";
 
 // POST /api/checkout/validate-coupon
 export async function POST(request: Request) {
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     const parsed = checkoutWithCouponSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Invalid cart data" },
+        { success: false, ...formatValidationError(parsed.error) },
         { status: 422 },
       );
     }

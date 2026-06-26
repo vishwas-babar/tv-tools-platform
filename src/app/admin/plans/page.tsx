@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { api } from "@/lib/axios";
+import { api, ApiError } from "@/lib/axios";
+import { getFieldError, validateForm, type FieldErrors } from "@/lib/validation";
+import { planSchema } from "@/validations/plan";
+import { FormFieldError } from "@/components/form-field-error";
 
 interface Plan {
   id: string;
@@ -19,6 +22,7 @@ export default function AdminPlansPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchPlans = useCallback(async () => {
@@ -37,7 +41,7 @@ export default function AdminPlansPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
-    setSubmitting(true);
+    setFieldErrors({});
 
     const form = e.currentTarget;
     const data = {
@@ -46,20 +50,37 @@ export default function AdminPlansPage() {
       price: Number((form.elements.namedItem("price") as HTMLInputElement).value),
     };
 
+    const validation = validateForm(planSchema, data);
+    if (!validation.success) {
+      setFormError(validation.error);
+      setFieldErrors(validation.details);
+      return;
+    }
+
+    setSubmitting(true);
+
     try {
       if (editingId) {
-        // Update existing plan
-        const { data: res } = await api.patch<{ success: boolean; data: Plan }>(`/plans/${editingId}`, data);
-        setPlans((prev) => prev.map((p) => (p.id === editingId ? res.data : p)).sort((a, b) => a.durationDays - b.durationDays));
+        const { data: res } = await api.patch<{ success: boolean; data: Plan }>(
+          `/plans/${editingId}`,
+          validation.data,
+        );
+        setPlans((prev) =>
+          prev.map((p) => (p.id === editingId ? res.data : p)).sort((a, b) => a.durationDays - b.durationDays),
+        );
         setEditingId(null);
       } else {
-        // Create new plan
-        const { data: res } = await api.post<{ success: boolean; data: Plan }>("/plans", data);
+        const { data: res } = await api.post<{ success: boolean; data: Plan }>("/plans", validation.data);
         setPlans((prev) => [...prev, res.data].sort((a, b) => a.durationDays - b.durationDays));
       }
       form.reset();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Failed to save plan");
+      if (err instanceof ApiError) {
+        setFormError(err.message);
+        if (err.details) setFieldErrors(err.details);
+      } else {
+        setFormError(err instanceof Error ? err.message : "Failed to save plan");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -78,6 +99,7 @@ export default function AdminPlansPage() {
   function handleCancelEdit() {
     setEditingId(null);
     setFormError(null);
+    setFieldErrors({});
     const form = document.getElementById("plan-form") as HTMLFormElement;
     if (form) form.reset();
   }
@@ -175,10 +197,10 @@ export default function AdminPlansPage() {
                   id="name"
                   name="name"
                   type="text"
-                  required
                   placeholder="e.g. Monthly Standard"
                   className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
+                <FormFieldError message={getFieldError(fieldErrors, "name")} />
               </div>
 
               <div>
@@ -190,10 +212,10 @@ export default function AdminPlansPage() {
                   name="durationDays"
                   type="number"
                   min="1"
-                  required
                   placeholder="e.g. 30"
                   className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
+                <FormFieldError message={getFieldError(fieldErrors, "durationDays")} />
               </div>
 
               <div>
@@ -206,10 +228,10 @@ export default function AdminPlansPage() {
                   type="number"
                   min="0"
                   step="0.01"
-                  required
                   placeholder="e.g. 29.99"
                   className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
+                <FormFieldError message={getFieldError(fieldErrors, "price")} />
               </div>
 
               <div className="flex gap-3">

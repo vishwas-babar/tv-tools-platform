@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { planSchema } from "@/validations/plan";
+import { formatValidationError } from "@/lib/validation";
 
 // GET /api/plans — get all global plans (admin only)
 export async function GET() {
@@ -49,8 +50,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
-          details: parsed.error.flatten().fieldErrors,
+          ...formatValidationError(parsed.error),
         },
         { status: 422 }
       );

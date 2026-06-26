@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { toolSchema } from "@/validations/tool";
+import { formatValidationError } from "@/lib/validation";
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 48;
@@ -112,8 +113,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
-          details: parsed.error.flatten().fieldErrors,
+          ...formatValidationError(parsed.error),
         },
         { status: 422 }
       );

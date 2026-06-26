@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/axios";
+import { useParams } from "next/navigation";
+import { api, ApiError } from "@/lib/axios";
+import { getFieldError, validateForm, type FieldErrors } from "@/lib/validation";
+import { updateToolSchema } from "@/validations/tool";
 import { ImageUpload } from "@/components/image-upload";
+import { FormFieldError } from "@/components/form-field-error";
 
 interface Plan {
   id: string;
@@ -25,26 +28,24 @@ interface Tool {
 
 export default function EditToolPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
 
   const [tool, setTool] = useState<Tool | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [loadingTool, setLoadingTool] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [success, setSuccess] = useState(false);
 
-  // Plan state
   const [globalPlans, setGlobalPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-    
-    // Fetch tool and global plans
+
     Promise.all([
       api.get<{ success: boolean; data: Tool }>(`/tools/${id}`),
-      api.get<{ success: boolean; data: Plan[] }>("/plans")
+      api.get<{ success: boolean; data: Plan[] }>("/plans"),
     ])
       .then(([toolRes, plansRes]) => {
         setTool(toolRes.data.data);
@@ -61,7 +62,7 @@ export default function EditToolPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setPending(true);
+    setFieldErrors({});
 
     const form = e.currentTarget;
     const data = {
@@ -71,23 +72,38 @@ export default function EditToolPage() {
       imageUrl,
       youtubeUrl: (form.elements.namedItem("youtubeUrl") as HTMLInputElement).value || "",
       isActive: (form.elements.namedItem("isActive") as HTMLInputElement).checked,
-      planIds: tool?.plans.map(p => p.id) || [],
+      planIds: tool?.plans.map((p) => p.id) || [],
     };
 
+    const validation = validateForm(updateToolSchema, data);
+    if (!validation.success) {
+      setError(validation.error);
+      setFieldErrors(validation.details);
+      return;
+    }
+
+    setPending(true);
     api
-      .patch<{ success: boolean }>(`/tools/${id}`, data)
+      .patch<{ success: boolean }>(`/tools/${id}`, validation.data)
       .then(() => {
         setSuccess(true);
       })
-      .catch((err: Error) => setError(err.message))
+      .catch((err: unknown) => {
+        if (err instanceof ApiError) {
+          setError(err.message);
+          if (err.details) setFieldErrors(err.details);
+          return;
+        }
+        setError(err instanceof Error ? err.message : "Failed to update tool");
+      })
       .finally(() => setPending(false));
   }
 
   function togglePlan(plan: Plan) {
     if (!tool) return;
-    const isSelected = tool.plans.some(p => p.id === plan.id);
+    const isSelected = tool.plans.some((p) => p.id === plan.id);
     if (isSelected) {
-      setTool({ ...tool, plans: tool.plans.filter(p => p.id !== plan.id) });
+      setTool({ ...tool, plans: tool.plans.filter((p) => p.id !== plan.id) });
     } else {
       setTool({ ...tool, plans: [...tool.plans, plan] });
     }
@@ -123,7 +139,7 @@ export default function EditToolPage() {
       )}
       {success && (
         <div className="mt-4 rounded border border-success/30 bg-success/10 p-3 text-sm text-success">
-          Tool updated successfully! Redirecting...
+          Tool updated successfully!
         </div>
       )}
 
@@ -131,7 +147,6 @@ export default function EditToolPage() {
         onSubmit={handleSubmit}
         className="mt-6 max-w-lg space-y-4 rounded-lg border border-border bg-surface p-6"
       >
-        {/* Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-foreground-secondary">
             Name
@@ -140,13 +155,12 @@ export default function EditToolPage() {
             id="name"
             name="name"
             type="text"
-            required
             defaultValue={tool.name}
             className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
+          <FormFieldError message={getFieldError(fieldErrors, "name")} />
         </div>
 
-        {/* Slug */}
         <div>
           <label htmlFor="slug" className="block text-sm font-medium text-foreground-secondary">
             Slug
@@ -155,13 +169,12 @@ export default function EditToolPage() {
             id="slug"
             name="slug"
             type="text"
-            required
             defaultValue={tool.slug}
             className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
+          <FormFieldError message={getFieldError(fieldErrors, "slug")} />
         </div>
 
-        {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-foreground-secondary">
             Description
@@ -169,22 +182,21 @@ export default function EditToolPage() {
           <textarea
             id="description"
             name="description"
-            required
             rows={4}
             defaultValue={tool.description}
             className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
+          <FormFieldError message={getFieldError(fieldErrors, "description")} />
         </div>
 
-        {/* Cover image — S3 upload */}
         <div>
           <label className="mb-1 block text-sm font-medium text-foreground-secondary">
             Cover Image
           </label>
           <ImageUpload value={imageUrl} onChange={setImageUrl} />
+          <FormFieldError message={getFieldError(fieldErrors, "imageUrl")} />
         </div>
 
-        {/* YouTube URL */}
         <div>
           <label htmlFor="youtubeUrl" className="block text-sm font-medium text-foreground-secondary">
             YouTube URL (optional)
@@ -196,9 +208,9 @@ export default function EditToolPage() {
             defaultValue={tool.youtubeUrl ?? ""}
             className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
           />
+          <FormFieldError message={getFieldError(fieldErrors, "youtubeUrl")} />
         </div>
 
-        {/* Active */}
         <div className="flex items-center gap-2">
           <input
             id="isActive"
@@ -221,7 +233,6 @@ export default function EditToolPage() {
         </button>
       </form>
 
-      {/* --- Manage Plans Section --- */}
       <div className="mt-10 max-w-lg rounded-lg border border-border bg-surface p-6">
         <h2 className="text-xl font-bold text-foreground">Assigned Plans</h2>
         <p className="mb-4 mt-1 text-sm text-foreground-secondary">
@@ -230,7 +241,7 @@ export default function EditToolPage() {
 
         <div className="space-y-3">
           {globalPlans.map((plan) => {
-            const isSelected = tool.plans.some(p => p.id === plan.id);
+            const isSelected = tool.plans.some((p) => p.id === plan.id);
             return (
               <label
                 key={plan.id}
@@ -247,14 +258,18 @@ export default function EditToolPage() {
                   />
                   <div>
                     <div className="font-medium text-foreground">{plan.name}</div>
-                    <div className="text-sm text-foreground-secondary">{plan.durationDays} Days for ₹{plan.price.toFixed(2)}</div>
+                    <div className="text-sm text-foreground-secondary">
+                      {plan.durationDays} Days for ₹{plan.price.toFixed(2)}
+                    </div>
                   </div>
                 </div>
               </label>
             );
           })}
           {globalPlans.length === 0 && (
-            <p className="text-sm text-foreground-muted">No global plans found. Go to Admin &gt; Plans to create some.</p>
+            <p className="text-sm text-foreground-muted">
+              No global plans found. Go to Admin &gt; Plans to create some.
+            </p>
           )}
         </div>
       </div>

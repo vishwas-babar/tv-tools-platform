@@ -27,3 +27,9 @@ export const toolSchema = z.object({
 });
 
 export type ToolInput = z.infer<typeof toolSchema>;
+
+export const updateToolSchema = toolSchema.extend({
+  planIds: z.array(z.string().min(1)).optional(),
+});
+
+export type UpdateToolInput = z.infer<typeof updateToolSchema>;

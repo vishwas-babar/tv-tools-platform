@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/axios";
+import { api, ApiError } from "@/lib/axios";
+import { getFieldError, validateForm, type FieldErrors } from "@/lib/validation";
+import { couponSchema } from "@/validations/coupon";
+import { FormFieldError } from "@/components/form-field-error";
 
 interface Coupon {
   id: string;
@@ -20,6 +23,7 @@ export default function AdminCouponsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchCoupons = useCallback(async () => {
@@ -38,7 +42,7 @@ export default function AdminCouponsPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    setSubmitting(true);
+    setFieldErrors({});
 
     const form = event.currentTarget;
     const data = {
@@ -51,11 +55,24 @@ export default function AdminCouponsPage() {
       active: (form.elements.namedItem("active") as HTMLInputElement).checked,
     };
 
+    const validation = validateForm(couponSchema, {
+      ...data,
+      code: data.code.trim(),
+      discountType: data.discountType as "PERCENTAGE" | "FIXED",
+    });
+    if (!validation.success) {
+      setFormError(validation.error);
+      setFieldErrors(validation.details);
+      return;
+    }
+
+    setSubmitting(true);
+
     try {
       if (editingId) {
         const { data: res } = await api.patch<{ success: boolean; data: Coupon }>(
           `/coupons/${editingId}`,
-          data,
+          validation.data,
         );
         setCoupons((prev) =>
           prev.map((coupon) => (coupon.id === editingId ? res.data : coupon)),
@@ -64,13 +81,18 @@ export default function AdminCouponsPage() {
       } else {
         const { data: res } = await api.post<{ success: boolean; data: Coupon }>(
           "/coupons",
-          data,
+          validation.data,
         );
         setCoupons((prev) => [res.data, ...prev]);
       }
       form.reset();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Failed to save coupon");
+      if (err instanceof ApiError) {
+        setFormError(err.message);
+        if (err.details) setFieldErrors(err.details);
+      } else {
+        setFormError(err instanceof Error ? err.message : "Failed to save coupon");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -93,6 +115,7 @@ export default function AdminCouponsPage() {
   function handleCancelEdit() {
     setEditingId(null);
     setFormError(null);
+    setFieldErrors({});
     const form = document.getElementById("coupon-form") as HTMLFormElement;
     if (form) form.reset();
   }
@@ -228,10 +251,10 @@ export default function AdminCouponsPage() {
                   id="code"
                   name="code"
                   type="text"
-                  required
                   placeholder="e.g. SAVE10"
                   className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm uppercase focus:border-primary focus:outline-none"
                 />
+                <FormFieldError message={getFieldError(fieldErrors, "code")} />
               </div>
 
               <div>
@@ -244,12 +267,12 @@ export default function AdminCouponsPage() {
                 <select
                   id="discountType"
                   name="discountType"
-                  required
                   className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 >
                   <option value="PERCENTAGE">Percentage</option>
                   <option value="FIXED">Fixed amount (₹)</option>
                 </select>
+                <FormFieldError message={getFieldError(fieldErrors, "discountType")} />
               </div>
 
               <div>
@@ -265,10 +288,10 @@ export default function AdminCouponsPage() {
                   type="number"
                   min="0"
                   step="0.01"
-                  required
                   placeholder="e.g. 10"
                   className="mt-1 w-full rounded border border-border-subtle px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 />
+                <FormFieldError message={getFieldError(fieldErrors, "discountValue")} />
               </div>
 
               <label className="flex items-center gap-2 text-sm text-foreground-secondary">

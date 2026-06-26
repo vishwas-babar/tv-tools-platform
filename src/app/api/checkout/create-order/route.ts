@@ -6,6 +6,7 @@ import { applyCouponToSubtotal, assertCouponAvailable } from "@/lib/coupon";
 import { CheckoutError, computeCartPricing } from "@/lib/checkout-pricing";
 import { provisionSubscriptions } from "@/lib/provision-subscriptions";
 import { checkoutWithCouponSchema } from "@/validations/checkout";
+import { formatValidationError } from "@/lib/validation";
 
 function getCashfreeErrorMessage(error: unknown): string | null {
   if (
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
     const parsed = checkoutWithCouponSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Invalid cart data" },
+        { success: false, ...formatValidationError(parsed.error) },
         { status: 422 },
       );
     }

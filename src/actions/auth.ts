@@ -4,6 +4,7 @@ import bcryptjs from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signIn, signOut } from "@/lib/auth";
 import { registerSchema, loginSchema } from "@/validations/auth";
+import { formatValidationError } from "@/lib/validation";
 import type { ActionResponse } from "@/types";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
@@ -22,9 +23,8 @@ export async function registerUser(
 
   const parsed = registerSchema.safeParse(rawData);
   if (!parsed.success) {
-    const errors = parsed.error.flatten().fieldErrors;
-    const firstError = Object.values(errors).flat()[0];
-    return { success: false, error: firstError ?? "Validation failed" };
+    const { error } = formatValidationError(parsed.error);
+    return { success: false, error };
   }
 
   const { name, email, password, tradingViewId, phone } = parsed.data;
@@ -81,9 +81,8 @@ export async function loginUser(
 
   const parsed = loginSchema.safeParse(rawData);
   if (!parsed.success) {
-    const errors = parsed.error.flatten().fieldErrors;
-    const firstError = Object.values(errors).flat()[0];
-    return { success: false, error: firstError ?? "Validation failed" };
+    const { error } = formatValidationError(parsed.error);
+    return { success: false, error };
   }
 
   try {

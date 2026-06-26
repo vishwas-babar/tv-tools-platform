@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { profileSchema } from "@/validations/profile";
+import { formatValidationError } from "@/lib/validation";
 import type { ActionResponse } from "@/types";
 import { revalidatePath } from "next/cache";
 
@@ -23,9 +24,8 @@ export async function updateProfile(
 
   const parsed = profileSchema.safeParse(rawData);
   if (!parsed.success) {
-    const errors = parsed.error.flatten().fieldErrors;
-    const firstError = Object.values(errors).flat()[0];
-    return { success: false, error: firstError ?? "Validation failed" };
+    const { error } = formatValidationError(parsed.error);
+    return { success: false, error };
   }
 
   await prisma.user.update({

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { toolSchema } from "@/validations/tool";
+import { updateToolSchema } from "@/validations/tool";
+import { formatValidationError } from "@/lib/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -48,20 +49,20 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await request.json();
-    const parsed = toolSchema.safeParse(body);
+    const parsed = updateToolSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
-          details: parsed.error.flatten().fieldErrors,
+          ...formatValidationError(parsed.error),
         },
         { status: 422 }
       );
     }
 
-    const { name, slug, description, imageUrl, youtubeUrl, isActive, planIds } = body as any;
+    const { name, slug, description, imageUrl, youtubeUrl, isActive, planIds } =
+      parsed.data;
 
     const duplicate = await prisma.tool.findFirst({
       where: { slug, NOT: { id } },

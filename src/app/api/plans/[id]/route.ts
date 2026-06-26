@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { planSchema } from "@/validations/plan";
+import { formatValidationError } from "@/lib/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -43,13 +45,30 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const { id } = await params;
     const body = await request.json();
+    const parsed = planSchema.safeParse({
+      ...body,
+      durationDays: Number(body.durationDays),
+      price: Number(body.price),
+    });
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          ...formatValidationError(parsed.error),
+        },
+        { status: 422 },
+      );
+    }
+
+    const { name, durationDays, price } = parsed.data;
 
     const plan = await prisma.plan.update({
       where: { id },
       data: {
-        name: body.name,
-        durationDays: Number(body.durationDays),
-        price: Number(body.price),
+        name,
+        durationDays,
+        price,
       },
     });
 

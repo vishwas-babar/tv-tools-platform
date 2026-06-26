@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { couponSchema } from "@/validations/coupon";
+import { formatValidationError } from "@/lib/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -31,8 +32,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
-          details: parsed.error.flatten().fieldErrors,
+          ...formatValidationError(parsed.error),
         },
         { status: 422 },
       );

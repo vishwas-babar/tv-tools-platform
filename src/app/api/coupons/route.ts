@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { couponSchema } from "@/validations/coupon";
+import { formatValidationError } from "@/lib/validation";
 
 // GET /api/coupons — list coupons (admin only)
 export async function GET() {
@@ -50,8 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Validation failed",
-          details: parsed.error.flatten().fieldErrors,
+          ...formatValidationError(parsed.error),
         },
         { status: 422 },
       );
