@@ -9,7 +9,7 @@ interface Tool {
   name: string;
   slug: string;
   isActive: boolean;
-  _count?: { plans: number; subscriptions: number };
+  _count?: { plans: number; subscriptions: number; orderItems: number };
 }
 
 export default function AdminToolsPage() {
@@ -31,12 +31,19 @@ export default function AdminToolsPage() {
     fetchTools();
   }, [fetchTools]);
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this tool?")) return;
-    setDeletingId(id);
+  async function handleDelete(tool: Tool) {
+    if (tool._count?.orderItems) {
+      alert(
+        `Cannot delete "${tool.name}" because it has purchase history. Edit the tool and set it to inactive instead.`,
+      );
+      return;
+    }
+
+    if (!confirm(`Delete "${tool.name}"? This will also remove its subscriptions.`)) return;
+    setDeletingId(tool.id);
     api
-      .delete(`/tools/${id}`)
-      .then(() => setTools((prev) => prev.filter((t) => t.id !== id)))
+      .delete(`/tools/${tool.id}`)
+      .then(() => setTools((prev) => prev.filter((t) => t.id !== tool.id)))
       .catch((err: Error) => alert(err.message))
       .finally(() => setDeletingId(null));
   }
@@ -76,6 +83,7 @@ export default function AdminToolsPage() {
                 <th className="px-4 py-3 font-medium text-foreground-muted">Status</th>
                 <th className="px-4 py-3 font-medium text-foreground-muted">Plans</th>
                 <th className="px-4 py-3 font-medium text-foreground-muted">Subs</th>
+                <th className="px-4 py-3 font-medium text-foreground-muted">Orders</th>
                 <th className="px-4 py-3 font-medium text-foreground-muted">Actions</th>
               </tr>
             </thead>
@@ -103,6 +111,9 @@ export default function AdminToolsPage() {
                   <td className="px-4 py-3 text-foreground-secondary">
                     {tool._count?.subscriptions ?? "—"}
                   </td>
+                  <td className="px-4 py-3 text-foreground-secondary">
+                    {tool._count?.orderItems ?? "—"}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Link
@@ -112,8 +123,13 @@ export default function AdminToolsPage() {
                         Edit
                       </Link>
                       <button
-                        onClick={() => handleDelete(tool.id)}
+                        onClick={() => handleDelete(tool)}
                         disabled={deletingId === tool.id}
+                        title={
+                          tool._count?.orderItems
+                            ? "Cannot delete tools with purchase history"
+                            : undefined
+                        }
                         className="text-sm text-danger hover:text-danger/80 disabled:opacity-50"
                       >
                         {deletingId === tool.id ? "Deleting..." : "Delete"}

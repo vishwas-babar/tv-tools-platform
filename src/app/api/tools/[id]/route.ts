@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { updateToolSchema } from "@/validations/tool";
@@ -114,10 +115,49 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
 
     const { id } = await params;
 
+    const tool = await prisma.tool.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        _count: { select: { orderItems: true } },
+      },
+    });
+
+    if (!tool) {
+      return NextResponse.json(
+        { success: false, error: "Tool not found" },
+        { status: 404 }
+      );
+    }
+
+    if (tool._count.orderItems > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Cannot delete "${tool.name}" because it has purchase history (${tool._count.orderItems} order item${tool._count.orderItems === 1 ? "" : "s"}). Deactivate the tool instead to hide it from the catalog.`,
+        },
+        { status: 409 }
+      );
+    }
+
     await prisma.tool.delete({ where: { id } });
 
     return NextResponse.json({ success: true, message: "Tool deleted" });
-  } catch {
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Cannot delete this tool because it is linked to existing orders or subscriptions. Deactivate the tool instead.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     return NextResponse.json(
       { success: false, error: "Failed to delete tool" },
       { status: 500 }

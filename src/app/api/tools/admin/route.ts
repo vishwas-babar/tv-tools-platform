@@ -15,7 +15,7 @@ export async function GET() {
 
     const tools = await prisma.tool.findMany({
       include: {
-        _count: { select: { plans: true, subscriptions: true } },
+        _count: { select: { plans: true, subscriptions: true, orderItems: true } },
       },
       orderBy: { createdAt: "desc" },
     });
