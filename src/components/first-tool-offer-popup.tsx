@@ -83,7 +83,7 @@ export function FirstToolOfferPopup() {
           <p className="mt-2 text-sm text-foreground-secondary">
             Welcome offer for new users! Pick any single tool and pay just{" "}
             {formatPrice(price)} for the first month. After that, autopay will
-            charge the regular plan price automatically — no coupon needed.
+            charge the regular plan price automatically, no coupon needed.
           </p>
         </div>
 
