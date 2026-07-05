@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "@/lib/axios";
 import { useCart } from "@/contexts/cart-context";
+import { useRestoreCheckoutSession } from "@/hooks/use-restore-checkout-session";
 import Link from "next/link";
 
 interface OrderItem {
@@ -17,6 +18,8 @@ interface VerifyResult {
   order_id: string;
   amount?: number;
   items?: OrderItem[];
+  autopay_pending?: boolean;
+  autopay_continue_url?: string | null;
 }
 
 function CheckoutStatusContent() {
@@ -29,6 +32,8 @@ function CheckoutStatusContent() {
   const [retryCount, setRetryCount] = useState(0);
 
   const orderId = searchParams.get("order_id");
+  const returnToken = searchParams.get("token");
+  const sessionReady = useRestoreCheckoutSession(orderId, returnToken);
 
   const verifyPayment = useCallback(async () => {
     if (!orderId) {
@@ -38,11 +43,15 @@ function CheckoutStatusContent() {
     }
 
     try {
+      const verifyUrl = returnToken
+        ? `/checkout/verify?order_id=${encodeURIComponent(orderId)}&token=${encodeURIComponent(returnToken)}`
+        : `/checkout/verify?order_id=${encodeURIComponent(orderId)}`;
+
       const { data: res } = await api.get<{
         success: boolean;
         data: VerifyResult;
         error?: string;
-      }>(`/checkout/verify?order_id=${orderId}`);
+      }>(verifyUrl);
 
       if (!res.success) {
         throw new Error(res.error || "Verification failed");
@@ -66,11 +75,12 @@ function CheckoutStatusContent() {
     } finally {
       setLoading(false);
     }
-  }, [orderId, clearCart, retryCount]);
+  }, [orderId, returnToken, clearCart, retryCount]);
 
   useEffect(() => {
+    if (!sessionReady) return;
     verifyPayment();
-  }, [verifyPayment]);
+  }, [sessionReady, verifyPayment]);
 
   if (!orderId) {
     return (
@@ -195,7 +205,17 @@ function CheckoutStatusContent() {
           </div>
         )}
 
-        <div className="mt-8 flex items-center justify-center gap-4">
+        <div className="mt-8 flex flex-col items-center justify-center gap-4">
+          {result.autopay_pending && result.autopay_continue_url && (
+            <button
+              type="button"
+              onClick={() => router.push(result.autopay_continue_url!)}
+              className="rounded-lg border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-medium text-foreground hover:bg-primary/20"
+            >
+              Continue autopay for remaining tools
+            </button>
+          )}
+          <div className="flex items-center justify-center gap-4">
           <Link
             href="/purchases"
             className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover"
@@ -208,6 +228,7 @@ function CheckoutStatusContent() {
           >
             Browse More Tools
           </Link>
+          </div>
         </div>
       </div>
     );
@@ -220,9 +241,19 @@ function CheckoutStatusContent() {
         <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-border border-t-warning" />
         <h1 className="text-2xl font-bold text-foreground">Payment Pending</h1>
         <p className="mt-2 text-foreground-secondary">
-          Your payment is still being processed. This page will update
-          automatically.
+          {result.autopay_pending
+            ? "Complete autopay authorization for your remaining tools to finish checkout."
+            : "Your payment is still being processed. This page will update automatically."}
         </p>
+        {result.autopay_pending && result.autopay_continue_url && (
+          <button
+            type="button"
+            onClick={() => router.push(result.autopay_continue_url!)}
+            className="mt-6 rounded-lg bg-primary px-6 py-3 text-sm font-medium text-foreground hover:bg-primary-hover"
+          >
+            Continue autopay setup
+          </button>
+        )}
         {retryCount >= 5 && (
           <p className="mt-4 text-sm text-foreground-muted">
             Taking longer than expected. Your subscription will be activated

@@ -1,14 +1,26 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { cashfree } from "@/lib/cashfree";
 import { applyCouponToSubtotal, assertCouponAvailable } from "@/lib/coupon";
 import { CheckoutError, computeCartPricing } from "@/lib/checkout-pricing";
+import {
+  FIRST_TOOL_OFFER_PRICE,
+  isEligibleForFirstToolOffer,
+} from "@/lib/first-purchase";
 import { provisionSubscriptions } from "@/lib/provision-subscriptions";
 import { checkoutWithCouponSchema } from "@/validations/checkout";
 import { formatValidationError } from "@/lib/validation";
+import {
+  createCashfreeSubscription,
+  getNextBillingDate,
+  planDurationToCashfreeInterval,
+  type AutopaySessionRecord,
+} from "@/lib/cashfree-subscriptions";
+import { createCheckoutReturnToken } from "@/lib/checkout-return-token";
 
 function getCashfreeErrorMessage(error: unknown): string | null {
+  if (error instanceof Error) return error.message;
+
   if (
     error &&
     typeof error === "object" &&
@@ -67,10 +79,29 @@ export async function POST(request: Request) {
       items,
     );
 
+    const planIds = [...new Set(orderItems.map((item) => item.planId))];
+    const toolIds = [...new Set(orderItems.map((item) => item.toolId))];
+
+    const [plans, tools] = await Promise.all([
+      prisma.plan.findMany({
+        where: { id: { in: planIds } },
+        select: { id: true, name: true, price: true, durationDays: true },
+      }),
+      prisma.tool.findMany({
+        where: { id: { in: toolIds } },
+        select: { id: true, name: true },
+      }),
+    ]);
+
+    const planMap = new Map(plans.map((plan) => [plan.id, plan]));
+    const toolMap = new Map(tools.map((tool) => [tool.id, tool]));
+
     let totalAmount = subtotalAmount;
     let discountAmount = 0;
     let couponId: string | undefined;
     let appliedCouponCode: string | undefined;
+    let firstToolOfferApplied = false;
+    const firstToolEligible = await isEligibleForFirstToolOffer(userId);
 
     if (couponCode) {
       const applied = await applyCouponToSubtotal(subtotalAmount, couponCode);
@@ -78,26 +109,40 @@ export async function POST(request: Request) {
       discountAmount = applied.discountAmount;
       couponId = applied.coupon.id;
       appliedCouponCode = applied.coupon.code;
-
-      // Re-check right before creating the order to avoid race conditions.
       await assertCouponAvailable(couponId);
+    } else if (
+      items.length === 1 &&
+      subtotalAmount > FIRST_TOOL_OFFER_PRICE &&
+      firstToolEligible
+    ) {
+      totalAmount = FIRST_TOOL_OFFER_PRICE;
+      discountAmount =
+        Math.round((subtotalAmount - FIRST_TOOL_OFFER_PRICE) * 100) / 100;
+      firstToolOfferApplied = true;
     }
 
     const cashfreeOrderId = `order_${Date.now()}_${userId.slice(-6)}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const order = await prisma.order.create({
       data: {
         userId,
         subtotalAmount,
-        discountAmount: couponCode ? discountAmount : null,
+        discountAmount:
+          couponCode || firstToolOfferApplied ? discountAmount : null,
         couponId: couponId ?? null,
-        couponCode: appliedCouponCode ?? null,
+        couponCode: firstToolOfferApplied
+          ? "FIRST-TOOL OFFER"
+          : appliedCouponCode ?? null,
         totalAmount,
         status: "PENDING",
         cashfreeOrderId,
         items: {
           create: orderItems,
         },
+      },
+      include: {
+        items: true,
       },
     });
 
@@ -120,59 +165,97 @@ export async function POST(request: Request) {
       });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const cashfreeRequest = {
-      order_amount: totalAmount,
-      order_currency: "INR",
-      order_id: cashfreeOrderId,
-      customer_details: {
-        customer_id: userId,
-        customer_email: user.email,
-        customer_phone: user.phone,
-        customer_name: user.name,
-      },
-      order_meta: {
-        return_url: `${appUrl}/checkout/status?order_id=${cashfreeOrderId}`,
-      },
-    };
-
-    let paymentSessionId: string | undefined;
+    const autopaySessions: AutopaySessionRecord[] = [];
+    const checkoutReturnToken = createCheckoutReturnToken(cashfreeOrderId, userId);
+    const checkoutStatusUrl = `${appUrl}/checkout/status?order_id=${cashfreeOrderId}&token=${checkoutReturnToken}`;
 
     try {
-      const response = await cashfree.PGCreateOrder(cashfreeRequest);
-      paymentSessionId = response.data?.payment_session_id;
+      for (let index = 0; index < order.items.length; index++) {
+        const item = order.items[index];
+        const plan = planMap.get(item.planId);
+        const tool = toolMap.get(item.toolId);
+
+        if (!plan || !tool) {
+          throw new CheckoutError("Invalid cart item");
+        }
+
+        const recurringAmount = plan.price;
+        const isFirstToolItem =
+          firstToolOfferApplied && order.items.length === 1 && index === 0;
+        const authorizationAmount = isFirstToolItem
+          ? FIRST_TOOL_OFFER_PRICE
+          : recurringAmount;
+
+        const { planIntervalType, planIntervals } =
+          planDurationToCashfreeInterval(plan.durationDays);
+        const cashfreeSubscriptionId = `sub_${order.id.slice(-8)}_${index}_${Date.now()}`;
+        const firstChargeTime = getNextBillingDate(
+          new Date(),
+          plan.durationDays,
+        );
+
+        const cfSubscription = await createCashfreeSubscription({
+          subscriptionId: cashfreeSubscriptionId,
+          customerName: user.name,
+          customerEmail: user.email,
+          customerPhone: user.phone,
+          planName: `${tool.name} - ${plan.name}`,
+          planAmount: recurringAmount,
+          planMaxAmount: Math.max(recurringAmount, authorizationAmount),
+          planIntervalType,
+          planIntervals,
+          authorizationAmount,
+          firstChargeTime,
+          returnUrl: checkoutStatusUrl,
+          planNote: `${tool.name} autopay subscription`,
+        });
+
+        autopaySessions.push({
+          subscriptionId: cashfreeSubscriptionId,
+          subscriptionSessionId: cfSubscription.subscription_session_id,
+          cfSubscriptionId: cfSubscription.cf_subscription_id,
+          toolId: item.toolId,
+          planId: item.planId,
+          toolName: tool.name,
+          recurringAmount,
+          firstChargeAmount: authorizationAmount,
+          authorized: false,
+        });
+      }
     } catch (cashfreeError) {
       await prisma.order.delete({ where: { id: order.id } });
 
       const message = getCashfreeErrorMessage(cashfreeError);
-      console.error("Cashfree create order error:", cashfreeError);
+      console.error("Cashfree subscription create error:", cashfreeError);
       return NextResponse.json(
-        { success: false, error: message ?? "Failed to create payment session" },
+        {
+          success: false,
+          error: message ?? "Failed to create autopay subscription",
+        },
         { status: 400 },
-      );
-    }
-
-    if (!paymentSessionId) {
-      await prisma.order.delete({ where: { id: order.id } });
-      return NextResponse.json(
-        { success: false, error: "Failed to create payment session" },
-        { status: 500 },
       );
     }
 
     await prisma.order.update({
       where: { id: order.id },
-      data: { paymentSessionId },
+      data: { autopaySessions },
     });
+
+    const firstSession = autopaySessions[0];
 
     return NextResponse.json({
       success: true,
       data: {
-        payment_session_id: paymentSessionId,
+        is_autopay: true,
         cashfree_order_id: cashfreeOrderId,
         subtotal_amount: subtotalAmount,
         discount_amount: discountAmount,
         total_amount: totalAmount,
+        subscription_id: firstSession.subscriptionId,
+        subscription_session_id: firstSession.subscriptionSessionId,
+        subscription_sessions: autopaySessions,
+        autopay_redirect_url: `${appUrl}/checkout/autopay?order_id=${cashfreeOrderId}&token=${checkoutReturnToken}`,
+        checkout_return_token: checkoutReturnToken,
       },
     });
   } catch (error) {

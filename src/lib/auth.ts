@@ -3,10 +3,24 @@ import Credentials from "next-auth/providers/credentials";
 import bcryptjs from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/validations/auth";
+import { resolveCheckoutAccess } from "@/lib/checkout-return-token";
 import "@/types";
+
+const useSecureCookies = process.env.AUTH_URL?.startsWith("https://") === true;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  session: { strategy: "jwt" },
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+      },
+    },
+  },
   providers: [
     Credentials({
       credentials: {
@@ -36,8 +50,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
+    Credentials({
+      id: "checkout-return",
+      credentials: {
+        orderId: { label: "Order ID", type: "text" },
+        token: { label: "Return Token", type: "text" },
+      },
+      async authorize(credentials) {
+        const orderId =
+          typeof credentials?.orderId === "string" ? credentials.orderId : "";
+        const token =
+          typeof credentials?.token === "string" ? credentials.token : "";
+
+        if (!orderId || !token) return null;
+
+        const access = await resolveCheckoutAccess(orderId, undefined, token);
+        if (!access.ok) return null;
+
+        const user = await prisma.user.findUnique({
+          where: { id: access.userId },
+          select: { id: true, name: true, email: true, role: true },
+        });
+
+        if (!user) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
+      },
+    }),
   ],
-  session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
   },

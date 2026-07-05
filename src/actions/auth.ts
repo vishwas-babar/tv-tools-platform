@@ -27,7 +27,8 @@ export async function registerUser(
     return { success: false, error };
   }
 
-  const { name, email, password, tradingViewId, phone } = parsed.data;
+  const { name, email, password, phone } = parsed.data;
+  const tradingViewId = parsed.data.tradingViewId.trim();
 
   // Check for duplicate email
   const existingUser = await prisma.user.findUnique({
@@ -36,6 +37,20 @@ export async function registerUser(
 
   if (existingUser) {
     return { success: false, error: "An account with this email already exists" };
+  }
+
+  // Prevent people from opening multiple accounts with the same TradingView ID
+  // (e.g. to repeatedly claim the first-tool offer).
+  const existingTradingViewId = await prisma.user.findFirst({
+    where: { tradingViewId: { equals: tradingViewId, mode: "insensitive" } },
+    select: { id: true },
+  });
+
+  if (existingTradingViewId) {
+    return {
+      success: false,
+      error: "This TradingView ID is already registered with another account",
+    };
   }
 
   // Hash password

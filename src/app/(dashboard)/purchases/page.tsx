@@ -2,14 +2,17 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { SubscriptionStatusBadgeFromRecord } from "@/components/subscription-status-badge";
-import { formatSubscriptionDateTime } from "@/lib/subscriptions";
+import {
+  formatSubscriptionDateTime,
+  paidSubscriptionWhere,
+} from "@/lib/subscriptions";
 
 export default async function PurchasesPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
   const subscriptions = await prisma.subscription.findMany({
-    where: { userId: session.user.id },
+    where: paidSubscriptionWhere(session.user.id),
     include: {
       tool: { select: { name: true, slug: true } },
       plan: { select: { name: true, durationDays: true, price: true } },

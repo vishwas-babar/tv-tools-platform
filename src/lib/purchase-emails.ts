@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { isEmailConfigured, sendEmail } from "@/lib/email";
 import { SITE_NAME } from "@/lib/site";
+import { parseAutopaySessions } from "@/lib/cashfree-subscriptions";
 
 function escapeHtml(value: string): string {
   return value
@@ -66,9 +67,25 @@ export async function sendPurchaseEmails(orderId: string) {
 
   if (!order || order.status !== "PAID") return;
 
+  const authorizedSessions = parseAutopaySessions(order.autopaySessions).filter(
+    (session) => session.authorized,
+  );
+
+  const paidItems =
+    authorizedSessions.length > 0
+      ? order.items.filter((item) =>
+          authorizedSessions.some(
+            (session) =>
+              session.toolId === item.toolId && session.planId === item.planId,
+          ),
+        )
+      : order.items;
+
+  if (paidItems.length === 0) return;
+
   const adminEmail = process.env.ADMIN_EMAIL!;
   const supportEmail = process.env.SUPPORT_EMAIL!;
-  const toolList = formatToolList(order.items);
+  const toolList = formatToolList(paidItems);
   const orderRef = order.cashfreeOrderId;
   const buyerName = order.user.name;
   const buyerEmail = order.user.email;

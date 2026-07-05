@@ -1,4 +1,4 @@
-import type { SubscriptionStatus } from "@prisma/client";
+import type { SubscriptionStatus, Prisma } from "@prisma/client";
 
 export type SubscriptionDisplayStatus =
   | "PENDING_ACCESS"
@@ -69,3 +69,15 @@ export const subscriptionStatusStyles: Record<
   ACTIVE: "bg-success/15 text-success",
   EXPIRED: "bg-surface-elevated text-foreground-muted",
 };
+
+/** Subscriptions that completed payment — excludes checkout placeholders. */
+export function paidSubscriptionWhere(userId: string): Prisma.SubscriptionWhereInput {
+  return {
+    userId,
+    NOT: { autopayStatus: "INITIALIZED" },
+    OR: [
+      { autopayStatus: { in: ["ACTIVE", "BANK_APPROVAL_PENDING", "ON_HOLD"] } },
+      { autopayStatus: null, order: { status: "PAID" } },
+    ],
+  };
+}

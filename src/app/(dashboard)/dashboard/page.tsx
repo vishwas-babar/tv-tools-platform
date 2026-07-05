@@ -3,29 +3,32 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { DashboardStats, QuickActions } from "@/components/dashboard-stats";
 import { RecentSubscriptions } from "@/components/recent-subscriptions";
+import { paidSubscriptionWhere } from "@/lib/subscriptions";
 
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  const paidWhere = paidSubscriptionWhere(session.user.id);
+
   const [subscriptionCount, activeSubscriptionCount, pendingAccessCount, recentSubs] =
     await Promise.all([
-      prisma.subscription.count({ where: { userId: session.user.id } }),
+      prisma.subscription.count({ where: paidWhere }),
       prisma.subscription.count({
         where: {
-          userId: session.user.id,
+          ...paidWhere,
           status: "ACTIVE",
           endDate: { gt: new Date() },
         },
       }),
       prisma.subscription.count({
         where: {
-          userId: session.user.id,
+          ...paidWhere,
           status: "PENDING_ACCESS",
         },
       }),
       prisma.subscription.findMany({
-        where: { userId: session.user.id },
+        where: paidWhere,
         include: {
           tool: { select: { name: true, slug: true } },
           plan: { select: { name: true } },

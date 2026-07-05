@@ -4,6 +4,11 @@ declare module "@cashfreepayments/cashfree-js" {
     redirectTarget?: "_self" | "_blank" | "_top" | "_modal";
   }
 
+  export interface CashfreeSubscriptionCheckoutOptions {
+    subsSessionId: string;
+    redirectTarget?: "_self" | "_blank" | "_top" | "_modal";
+  }
+
   export interface CashfreeCheckoutResult {
     error?: {
       message?: string;
@@ -12,6 +17,9 @@ declare module "@cashfreepayments/cashfree-js" {
 
   export interface CashfreeInstance {
     checkout(options: CashfreeCheckoutOptions): Promise<CashfreeCheckoutResult>;
+    subscriptionsCheckout(
+      options: CashfreeSubscriptionCheckoutOptions,
+    ): Promise<CashfreeCheckoutResult>;
   }
 
   export interface LoadOptions {

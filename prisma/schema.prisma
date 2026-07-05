@@ -28,6 +28,21 @@ enum SubscriptionStatus {
   ACTIVE
 }
 
+enum AutopayStatus {
+  INITIALIZED
+  BANK_APPROVAL_PENDING
+  ACTIVE
+  ON_HOLD
+  PAUSED
+  COMPLETED
+  CUSTOMER_CANCELLED
+  CUSTOMER_PAUSED
+  EXPIRED
+  LINK_EXPIRED
+  CARD_EXPIRED
+  CANCELLED
+}
+
 model User {
   id            String         @id @default(cuid())
   name          String
@@ -71,20 +86,28 @@ model Plan {
 }
 
 model Subscription {
-  id        String             @id @default(cuid())
-  userId    String
-  toolId    String
-  planId    String
-  orderId   String?
-  status    SubscriptionStatus @default(PENDING_ACCESS)
-  startDate DateTime?
-  endDate   DateTime?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tool      Tool               @relation(fields: [toolId], references: [id], onDelete: Cascade)
-  plan      Plan               @relation(fields: [planId], references: [id], onDelete: Cascade)
-  order     Order?             @relation(fields: [orderId], references: [id])
+  id                     String             @id @default(cuid())
+  userId                 String
+  toolId                 String
+  planId                 String
+  orderId                String?
+  status                 SubscriptionStatus @default(PENDING_ACCESS)
+  startDate              DateTime?
+  endDate                DateTime?
+  cashfreeSubscriptionId String?            @unique
+  cfSubscriptionId       String?            @unique
+  recurringAmount        Float?
+  firstChargeAmount      Float?
+  autopayStatus          AutopayStatus?
+  nextBillingDate        DateTime?
+  autopayEnabled         Boolean            @default(true)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tool                   Tool               @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  plan                   Plan               @relation(fields: [planId], references: [id], onDelete: Cascade)
+  order                  Order?             @relation(fields: [orderId], references: [id])
+  renewalPayments        RenewalPayment[]
 }
 
 model Coupon {
@@ -110,6 +133,7 @@ model Order {
   status           OrderStatus @default(PENDING)
   cashfreeOrderId  String      @unique
   paymentSessionId String?
+  autopaySessions  Json?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -117,6 +141,19 @@ model Order {
   items            OrderItem[]
   payment          Payment?
   subscriptions    Subscription[]
+}
+
+model RenewalPayment {
+  id                String       @id @default(cuid())
+  subscriptionId    String
+  amount            Float
+  status            String
+  providerPaymentId String?
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  subscription      Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 }
 
 model OrderItem {

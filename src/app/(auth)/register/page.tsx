@@ -1,14 +1,29 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { registerUser } from "@/actions/auth";
 import Link from "next/link";
 
 const inputClassName =
   "mt-1 w-full rounded border border-border-subtle bg-surface-elevated px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none";
 
+const emptyFields = {
+  name: "",
+  email: "",
+  password: "",
+  tradingViewId: "",
+  phone: "",
+};
+
 export default function RegisterPage() {
   const [state, formAction, pending] = useActionState(registerUser, undefined);
+  const [fields, setFields] = useState(emptyFields);
+
+  function updateField(field: keyof typeof emptyFields) {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
+      setFields((prev) => ({ ...prev, [field]: event.target.value }));
+    };
+  }
 
   return (
     <>
@@ -36,6 +51,8 @@ export default function RegisterPage() {
             name="name"
             type="text"
             required
+            value={fields.name}
+            onChange={updateField("name")}
             className={inputClassName}
           />
         </div>
@@ -52,6 +69,8 @@ export default function RegisterPage() {
             name="email"
             type="email"
             required
+            value={fields.email}
+            onChange={updateField("email")}
             className={inputClassName}
           />
         </div>
@@ -69,6 +88,8 @@ export default function RegisterPage() {
             type="password"
             required
             minLength={8}
+            value={fields.password}
+            onChange={updateField("password")}
             className={inputClassName}
           />
         </div>
@@ -85,6 +106,8 @@ export default function RegisterPage() {
             name="tradingViewId"
             type="text"
             required
+            value={fields.tradingViewId}
+            onChange={updateField("tradingViewId")}
             className={inputClassName}
           />
         </div>
@@ -104,6 +127,8 @@ export default function RegisterPage() {
             minLength={10}
             maxLength={15}
             placeholder="e.g. 9876543210"
+            value={fields.phone}
+            onChange={updateField("phone")}
             className={inputClassName}
           />
         </div>

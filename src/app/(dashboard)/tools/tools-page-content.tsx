@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/axios";
 import { ToolCard } from "@/components/tool-card";
 import { Pagination } from "@/components/pagination";
+import { FirstToolOfferPopup } from "@/components/first-tool-offer-popup";
 
 interface ToolPlan {
   id: string;
@@ -145,6 +146,7 @@ export function ToolsPageContent() {
 
   return (
     <>
+      <FirstToolOfferPopup />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground sm:text-3xl">All Tools</h1>

@@ -2,7 +2,7 @@
 
 import { useCart } from "@/contexts/cart-context";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/axios";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { load } from "@cashfreepayments/cashfree-js";
@@ -26,8 +26,41 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(
     null,
   );
+  const [offer, setOffer] = useState<{ eligible: boolean; price: number } | null>(
+    null,
+  );
 
-  const payableTotal = appliedCoupon?.totalAmount ?? totalAmount;
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get<{ success: boolean; data: { eligible: boolean; price: number } }>(
+        "/offers/first-tool",
+      )
+      .then(({ data }) => {
+        if (!cancelled && data.success) setOffer(data.data);
+      })
+      .catch(() => {
+        /* offer is optional — ignore failures */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The ₹9 first-tool offer only applies to a single tool and can't be stacked
+  // with a coupon. Server-side pricing is the source of truth; this mirrors it.
+  const offerActive =
+    Boolean(offer?.eligible) &&
+    itemCount === 1 &&
+    !appliedCoupon &&
+    offer!.price < totalAmount;
+  const offerDiscount = offerActive
+    ? Math.round((totalAmount - offer!.price) * 100) / 100
+    : 0;
+
+  const payableTotal = offerActive
+    ? offer!.price
+    : appliedCoupon?.totalAmount ?? totalAmount;
   const isFreeCheckout = payableTotal === 0;
 
   async function handleApplyCoupon() {
@@ -84,6 +117,8 @@ export default function CheckoutPage() {
           payment_session_id?: string;
           cashfree_order_id: string;
           is_free?: boolean;
+          is_autopay?: boolean;
+          autopay_redirect_url?: string;
         };
         error?: string;
       }>("/checkout/create-order", {
@@ -100,6 +135,11 @@ export default function CheckoutPage() {
 
       if (res.data.is_free) {
         router.push(`/checkout/status?order_id=${res.data.cashfree_order_id}`);
+        return;
+      }
+
+      if (res.data.is_autopay && res.data.autopay_redirect_url) {
+        router.push(res.data.autopay_redirect_url);
         return;
       }
 
@@ -205,7 +245,24 @@ export default function CheckoutPage() {
           ))}
         </ul>
 
+        {offerActive ? (
+          <div className="border-t border-border px-6 py-4">
+            <div className="flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3">
+              <span className="text-lg">🎉</span>
+              <p className="text-sm font-medium text-foreground">
+                First-tool offer applied — pay {formatPrice(offer!.price)} now,
+                then autopay at the regular plan price from the next cycle.
+              </p>
+            </div>
+          </div>
+        ) : (
         <div className="border-t border-border px-6 py-4">
+          {offer?.eligible && itemCount > 1 && (
+            <p className="mb-3 rounded-lg border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-foreground">
+              Buy a single tool to unlock your first-tool offer for just{" "}
+              {formatPrice(offer.price)}.
+            </p>
+          )}
           <label
             htmlFor="coupon-code"
             className="block text-sm font-medium text-foreground-secondary"
@@ -250,12 +307,19 @@ export default function CheckoutPage() {
             </p>
           )}
         </div>
+        )}
 
         <div className="space-y-2 border-t border-border px-6 py-4">
           <div className="flex items-center justify-between text-sm text-foreground-secondary">
             <span>Subtotal</span>
             <span>{formatPrice(totalAmount)}</span>
           </div>
+          {offerActive && (
+            <div className="flex items-center justify-between text-sm text-success">
+              <span>First-tool offer</span>
+              <span>-{formatPrice(offerDiscount)}</span>
+            </div>
+          )}
           {appliedCoupon && (
             <div className="flex items-center justify-between text-sm text-success">
               <span>Discount ({appliedCoupon.couponCode})</span>
@@ -309,7 +373,7 @@ export default function CheckoutPage() {
       <p className="mt-4 text-center text-xs text-foreground-muted">
         {isFreeCheckout
           ? "No payment required — your coupon covers the full order amount."
-          : "Payments are securely processed by Cashfree. Your card details are never stored on our servers."}
+          : "All purchases include autopay. You'll authorize recurring billing at the plan price after any first-month discount. Payments are securely processed by Cashfree."}
       </p>
     </div>
   );

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { CartItemInput } from "@/validations/checkout";
+import { paidSubscriptionWhere } from "@/lib/subscriptions";
 
 export class CheckoutError extends Error {
   status: number;
@@ -53,7 +54,7 @@ export async function computeCartPricing(
 
   const existingSubscriptions = await prisma.subscription.findMany({
     where: {
-      userId,
+      ...paidSubscriptionWhere(userId),
       toolId: { in: items.map((item) => item.toolId) },
       OR: [
         { status: "PENDING_ACCESS" },
