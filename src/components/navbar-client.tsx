@@ -62,6 +62,9 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
           <Link href="/about" className={linkClass("/about")}>
             About
           </Link>
+          <Link href="/disclaimer" className={linkClass("/disclaimer")}>
+            Disclaimer
+          </Link>
           {isLoggedIn && isAdmin && (
             <Link href="/admin" className={linkClass("/admin")}>
               Admin
@@ -143,6 +146,13 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
                   About
                 </Link>
                 <Link
+                  href="/disclaimer"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/disclaimer")}
+                >
+                  Disclaimer
+                </Link>
+                <Link
                   href="/profile"
                   onClick={() => setMobileOpen(false)}
                   className={linkClass("/profile")}
@@ -192,6 +202,13 @@ export function NavbarClient({ isLoggedIn, isAdmin, userName }: NavbarClientProp
                   className={linkClass("/about")}
                 >
                   About
+                </Link>
+                <Link
+                  href="/disclaimer"
+                  onClick={() => setMobileOpen(false)}
+                  className={linkClass("/disclaimer")}
+                >
+                  Disclaimer
                 </Link>
                 <Link
                   href="/login"
