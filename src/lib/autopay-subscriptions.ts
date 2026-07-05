@@ -42,6 +42,29 @@ function mapCashfreeAutopayStatus(status?: string): AutopayStatus | undefined {
     : undefined;
 }
 
+async function markPurchaseEmailsSent(
+  orderId: string,
+  subscriptionIds: string[],
+) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { autopaySessions: true },
+  });
+
+  if (!order) return;
+
+  const sessions = parseAutopaySessions(order.autopaySessions).map((session) =>
+    subscriptionIds.includes(session.subscriptionId)
+      ? { ...session, purchaseEmailSent: true }
+      : session,
+  );
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { autopaySessions: sessions },
+  });
+}
+
 async function markAutopaySessionAuthorized(
   orderId: string,
   cashfreeSubscriptionId: string,
@@ -175,10 +198,24 @@ async function finalizePaidOrder(orderId: string) {
     },
   });
 
-  if (!wasAlreadyPaid) {
-    sendPurchaseEmails(order.id).catch((error) => {
-      console.error(`Failed to send purchase emails for order ${order.id}:`, error);
-    });
+  const sessionsNeedingEmail = sessions.filter(
+    (session) => session.authorized && session.purchaseEmailSent !== true,
+  );
+
+  if (sessionsNeedingEmail.length > 0) {
+    const subscriptionIds = sessionsNeedingEmail.map(
+      (session) => session.subscriptionId,
+    );
+
+    try {
+      await sendPurchaseEmails(order.id, { subscriptionIds });
+      await markPurchaseEmailsSent(order.id, subscriptionIds);
+    } catch (error) {
+      console.error(
+        `Failed to send purchase emails for order ${order.id}:`,
+        error,
+      );
+    }
   }
 }
 

@@ -44,6 +44,7 @@ export type AutopaySessionRecord = {
   recurringAmount: number;
   firstChargeAmount: number;
   authorized: boolean;
+  purchaseEmailSent?: boolean;
 };
 
 function cashfreeHeaders(idempotencyKey?: string): HeadersInit {

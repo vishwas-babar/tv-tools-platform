@@ -37,7 +37,10 @@ function formatToolList(
   return { text, html };
 }
 
-export async function sendPurchaseEmails(orderId: string) {
+export async function sendPurchaseEmails(
+  orderId: string,
+  options?: { subscriptionIds?: string[] },
+) {
   if (!isEmailConfigured()) {
     console.warn(
       "Purchase emails skipped: configure SMTP_HOST, SMTP_USER, SMTP_PASS, EMAIL_FROM, ADMIN_EMAIL, and SUPPORT_EMAIL"
@@ -71,10 +74,16 @@ export async function sendPurchaseEmails(orderId: string) {
     (session) => session.authorized,
   );
 
+  const targetSessions = options?.subscriptionIds
+    ? authorizedSessions.filter((session) =>
+        options.subscriptionIds!.includes(session.subscriptionId),
+      )
+    : authorizedSessions;
+
   const paidItems =
     authorizedSessions.length > 0
       ? order.items.filter((item) =>
-          authorizedSessions.some(
+          targetSessions.some(
             (session) =>
               session.toolId === item.toolId && session.planId === item.planId,
           ),
@@ -82,6 +91,16 @@ export async function sendPurchaseEmails(orderId: string) {
       : order.items;
 
   if (paidItems.length === 0) return;
+
+  const emailAmount =
+    targetSessions.length > 0
+      ? Math.round(
+          targetSessions.reduce(
+            (sum, session) => sum + session.firstChargeAmount,
+            0,
+          ) * 100,
+        ) / 100
+      : order.totalAmount;
 
   const adminEmail = process.env.ADMIN_EMAIL!;
   const supportEmail = process.env.SUPPORT_EMAIL!;
@@ -103,7 +122,7 @@ export async function sendPurchaseEmails(orderId: string) {
     `- TradingView ID: ${order.user.tradingViewId || "Not provided"}`,
     "",
     `Order ID: ${orderRef}`,
-    `Total amount: ${formatPrice(order.totalAmount)}`,
+    `Total amount: ${formatPrice(emailAmount)}`,
   ].join("\n");
 
   const adminHtml = `
@@ -118,7 +137,7 @@ export async function sendPurchaseEmails(orderId: string) {
       <li><strong>TradingView ID:</strong> ${escapeHtml(order.user.tradingViewId || "Not provided")}</li>
     </ul>
     <p><strong>Order ID:</strong> ${escapeHtml(orderRef)}</p>
-    <p><strong>Total amount:</strong> ${escapeHtml(formatPrice(order.totalAmount))}</p>
+    <p><strong>Total amount:</strong> ${escapeHtml(formatPrice(emailAmount))}</p>
   `;
 
   const buyerText = [
@@ -134,7 +153,7 @@ export async function sendPurchaseEmails(orderId: string) {
     `For any queries, please contact us at ${supportEmail}.`,
     "",
     `Order ID: ${orderRef}`,
-    `Total amount: ${formatPrice(order.totalAmount)}`,
+    `Total amount: ${formatPrice(emailAmount)}`,
   ].join("\n");
 
   const buyerHtml = `
@@ -145,7 +164,7 @@ export async function sendPurchaseEmails(orderId: string) {
     <p>You will receive access to your purchased tools within the next 24 hours.</p>
     <p>For any queries, please contact us at <a href="mailto:${escapeHtml(supportEmail)}">${escapeHtml(supportEmail)}</a>.</p>
     <p><strong>Order ID:</strong> ${escapeHtml(orderRef)}</p>
-    <p><strong>Total amount:</strong> ${escapeHtml(formatPrice(order.totalAmount))}</p>
+    <p><strong>Total amount:</strong> ${escapeHtml(formatPrice(emailAmount))}</p>
   `;
 
   await Promise.all([
