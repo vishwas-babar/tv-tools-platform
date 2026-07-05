@@ -5,13 +5,15 @@ import { api } from "@/lib/axios";
 import { formatPrice } from "@/lib/format";
 
 const DISMISS_KEY = "first-tool-offer-dismissed";
+const SHOWN_KEY = "first-tool-offer-shown";
 
 export function FirstToolOfferPopup() {
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState<number | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem(DISMISS_KEY)) {
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem(DISMISS_KEY) || sessionStorage.getItem(SHOWN_KEY)) {
       return;
     }
 
@@ -22,6 +24,7 @@ export function FirstToolOfferPopup() {
       )
       .then(({ data }) => {
         if (cancelled || !data.success || !data.data.eligible) return;
+        sessionStorage.setItem(SHOWN_KEY, "1");
         setPrice(data.data.price);
         setOpen(true);
       })
@@ -82,8 +85,7 @@ export function FirstToolOfferPopup() {
           </h2>
           <p className="mt-2 text-sm text-foreground-secondary">
             Welcome offer for new users! Pick any single tool and pay just{" "}
-            {formatPrice(price)} for the first month. After that, autopay will
-            charge the regular plan price automatically, no coupon needed.
+            {formatPrice(price)} for the first month. No coupon needed.
           </p>
         </div>
 
@@ -96,8 +98,7 @@ export function FirstToolOfferPopup() {
             Browse tools & claim offer
           </button>
           <p className="mt-3 text-center text-xs text-foreground-muted">
-            Offer valid on your first purchase only. Autopay starts from the
-            next billing cycle at the regular plan price.
+            Offer valid on your first purchase only.
           </p>
         </div>
       </div>
